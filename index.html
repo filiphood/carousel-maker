@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Carousel Maker · Filip</title>
+<title>Carousel Maker · v2</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,7 +12,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 <style>
-  /* —————————————————————— shell —————————————————————— */
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
@@ -21,6 +20,7 @@
     --panel-3: #262626;
     --panel-line: #2c2c2c;
     --accent: #f4d784;
+    --accent-2: #a88cf4;
     --ink: #e9e9e9;
     --ink-soft: #9a9a9a;
     --ink-dim: #6c6c6c;
@@ -36,74 +36,44 @@
     overflow: hidden;
   }
 
-  .app {
-    display: grid;
-    grid-template-columns: 420px 1fr;
-    height: 100vh;
-  }
+  .app { display: grid; grid-template-columns: 440px 1fr; height: 100vh; }
 
-  /* —————————————————————— controls panel —————————————————————— */
-  .controls {
-    overflow-y: auto;
-    background: var(--panel-bg);
-    border-right: 1px solid var(--panel-line);
-  }
+  .controls { overflow-y: auto; background: var(--panel-bg); border-right: 1px solid var(--panel-line); }
   .controls::-webkit-scrollbar { width: 10px; }
   .controls::-webkit-scrollbar-thumb { background: #333; border-radius: 5px; }
 
   .app-header {
-    padding: 24px 24px 16px;
+    padding: 20px 24px 14px;
     border-bottom: 1px solid var(--panel-line);
     position: sticky;
     top: 0;
     background: var(--panel-bg);
-    z-index: 10;
+    z-index: 20;
   }
-  .app-header h1 {
-    font-size: 15px;
-    font-weight: 900;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-  .app-header p {
-    font-size: 11px;
-    color: var(--ink-dim);
-    margin-top: 4px;
-    letter-spacing: 0.02em;
-  }
+  .app-header h1 { font-size: 15px; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase; }
+  .app-header p { font-size: 11px; color: var(--ink-dim); margin-top: 4px; letter-spacing: 0.02em; }
 
-  .section {
-    padding: 20px 24px;
-    border-bottom: 1px solid var(--panel-line);
-  }
+  /* Carousel switcher bar */
+  .car-bar { padding: 14px 24px; border-bottom: 1px solid var(--panel-line); background: #1b1b1b; }
+  .car-row { display: flex; gap: 6px; align-items: center; }
+  .car-row select { flex: 1; }
+  .car-meta { font-size: 10px; color: var(--ink-dim); margin-top: 8px; letter-spacing: 0.02em; }
+
+  .section { padding: 18px 24px; border-bottom: 1px solid var(--panel-line); }
   .section-title {
-    font-size: 11px;
-    font-weight: 900;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--ink-soft);
-    margin-bottom: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    font-size: 11px; font-weight: 900; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--ink-soft);
+    margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between;
   }
   .section-title .dim { font-weight: 400; color: var(--ink-dim); letter-spacing: 0.02em; text-transform: none; font-size: 11px; }
 
-  /* Form field styles */
   .field { margin-bottom: 12px; }
   .field:last-child { margin-bottom: 0; }
   .field label {
-    display: block;
-    font-size: 11px;
-    color: var(--ink-soft);
-    margin-bottom: 6px;
-    letter-spacing: 0.02em;
+    display: block; font-size: 11px; color: var(--ink-soft);
+    margin-bottom: 6px; letter-spacing: 0.02em;
   }
-  .field-row {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-  }
+  .field-row { display: flex; gap: 10px; align-items: center; }
   .field-row > * { flex: 1; }
   .field-row .shrink { flex: 0 0 auto; }
 
@@ -119,211 +89,120 @@
     outline: none;
     transition: border-color .12s;
   }
-  input[type="text"]:focus, input[type="number"]:focus, textarea:focus, select:focus {
-    border-color: var(--accent);
-  }
-  textarea {
-    min-height: 60px;
-    resize: vertical;
-    line-height: 1.4;
-  }
-  input[type="range"] {
-    width: 100%;
-    accent-color: var(--accent);
-  }
+  input:focus, textarea:focus, select:focus { border-color: var(--accent); }
+  textarea { min-height: 60px; resize: vertical; line-height: 1.4; }
+  input[type="range"] { width: 100%; accent-color: var(--accent); }
   input[type="color"] {
-    width: 42px;
-    height: 32px;
-    border: 1px solid var(--panel-line);
-    border-radius: 6px;
-    background: var(--panel-2);
-    cursor: pointer;
-    padding: 2px;
+    width: 42px; height: 32px; border: 1px solid var(--panel-line);
+    border-radius: 6px; background: var(--panel-2); cursor: pointer; padding: 2px;
   }
-  input[type="checkbox"] {
-    accent-color: var(--accent);
-    width: 16px;
-    height: 16px;
-  }
-  input[type="file"] {
-    width: 100%;
-    font-size: 12px;
-    color: var(--ink-soft);
-  }
+  input[type="checkbox"] { accent-color: var(--accent); width: 16px; height: 16px; }
+  input[type="file"] { width: 100%; font-size: 12px; color: var(--ink-soft); }
   input[type="file"]::file-selector-button {
-    background: var(--panel-3);
-    border: 1px solid var(--panel-line);
-    color: var(--ink);
-    padding: 6px 10px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-family: inherit;
-    font-size: 12px;
-    margin-right: 8px;
+    background: var(--panel-3); border: 1px solid var(--panel-line); color: var(--ink);
+    padding: 6px 10px; border-radius: 5px; cursor: pointer;
+    font-family: inherit; font-size: 12px; margin-right: 8px;
   }
 
   .btn {
-    background: var(--panel-3);
-    border: 1px solid var(--panel-line);
-    color: var(--ink);
-    padding: 8px 14px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-family: inherit;
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 0.02em;
+    background: var(--panel-3); border: 1px solid var(--panel-line); color: var(--ink);
+    padding: 8px 14px; border-radius: 6px; cursor: pointer;
+    font-family: inherit; font-size: 12px; font-weight: 600; letter-spacing: 0.02em;
     transition: background .12s, border-color .12s;
   }
   .btn:hover { background: #303030; border-color: #3a3a3a; }
   .btn.primary { background: var(--accent); border-color: var(--accent); color: #1a1a1a; }
   .btn.primary:hover { background: #f0c968; border-color: #f0c968; }
+  .btn.secondary { background: var(--accent-2); border-color: var(--accent-2); color: #1a1a1a; }
+  .btn.secondary:hover { background: #9175e8; border-color: #9175e8; }
   .btn.danger { color: var(--danger); }
   .btn.danger:hover { background: #3a1f1f; border-color: #5a2828; }
   .btn.small { padding: 4px 8px; font-size: 11px; }
   .btn.full { width: 100%; }
-
   .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
 
-  .slide-card {
-    background: var(--panel-2);
-    border: 1px solid var(--panel-line);
-    border-radius: 8px;
-    margin-bottom: 12px;
-    overflow: hidden;
+  /* Cards (slides + themes) */
+  .card {
+    background: var(--panel-2); border: 1px solid var(--panel-line); border-radius: 8px;
+    margin-bottom: 10px; overflow: hidden;
   }
-  .slide-card-head {
-    padding: 10px 12px;
-    background: var(--panel-3);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    cursor: pointer;
-    user-select: none;
+  .card-head {
+    padding: 10px 12px; background: var(--panel-3); cursor: pointer; user-select: none;
+    display: flex; justify-content: space-between; align-items: center; gap: 8px;
   }
-  .slide-card-head h3 {
-    font-size: 12px;
-    font-weight: 900;
-    letter-spacing: 0.05em;
-  }
-  .slide-card-head .sub {
-    font-size: 10px;
-    color: var(--ink-dim);
-    font-weight: 400;
-    letter-spacing: 0.02em;
-    margin-top: 2px;
-  }
-  .slide-card-body {
-    padding: 14px 12px;
-    display: none;
-  }
-  .slide-card.open .slide-card-body { display: block; }
-  .slide-card.open .chev { transform: rotate(180deg); }
+  .card-head h3 { font-size: 12px; font-weight: 900; letter-spacing: 0.05em; }
+  .card-head .sub { font-size: 10px; color: var(--ink-dim); font-weight: 400; letter-spacing: 0.02em; margin-top: 2px; }
+  .card-body { padding: 14px 12px; display: none; }
+  .card.open .card-body { display: block; }
+  .card.open .chev { transform: rotate(180deg); }
   .chev { font-size: 10px; color: var(--ink-dim); transition: transform .12s; }
+  .card-actions { display: flex; gap: 4px; align-items: center; }
 
   .slider-val {
-    font-variant-numeric: tabular-nums;
-    color: var(--ink-soft);
-    font-size: 11px;
-    min-width: 34px;
-    text-align: right;
+    font-variant-numeric: tabular-nums; color: var(--ink-soft);
+    font-size: 11px; min-width: 34px; text-align: right;
   }
 
-  .chip-group {
-    display: flex;
-    gap: 4px;
-    flex-wrap: wrap;
-  }
+  .chip-group { display: flex; gap: 4px; flex-wrap: wrap; }
   .chip {
-    background: var(--panel-3);
-    border: 1px solid var(--panel-line);
-    color: var(--ink-soft);
-    padding: 5px 9px;
-    border-radius: 5px;
-    font-size: 11px;
-    cursor: pointer;
-    transition: all .12s;
+    background: var(--panel-3); border: 1px solid var(--panel-line); color: var(--ink-soft);
+    padding: 5px 9px; border-radius: 5px; font-size: 11px; cursor: pointer; transition: all .12s;
   }
   .chip:hover { color: var(--ink); border-color: #3a3a3a; }
   .chip.active { background: var(--accent); color: #1a1a1a; border-color: var(--accent); font-weight: 600; }
 
-  /* —————————————————————— preview panel —————————————————————— */
+  .theme-swatch {
+    width: 18px; height: 18px; border-radius: 4px; border: 1px solid #00000022;
+    display: inline-block; vertical-align: middle; margin-right: 6px;
+  }
+
+  /* Preview pane */
   .preview {
-    overflow-y: auto;
-    background: #0f0f0f;
-    padding: 48px 24px 96px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 48px;
+    overflow-y: auto; background: #0f0f0f;
+    padding: 40px 24px 96px;
+    display: flex; flex-direction: column; align-items: center; gap: 48px;
   }
   .preview::-webkit-scrollbar { width: 10px; }
   .preview::-webkit-scrollbar-thumb { background: #333; border-radius: 5px; }
 
   .preview-note {
-    color: var(--ink-dim);
-    font-size: 12px;
-    letter-spacing: 0.02em;
-    text-align: center;
-    max-width: 600px;
-    line-height: 1.6;
+    color: var(--ink-dim); font-size: 12px; letter-spacing: 0.02em;
+    text-align: center; max-width: 640px; line-height: 1.6;
+  }
+  .preview-title {
+    color: var(--ink); font-size: 15px; font-weight: 900; letter-spacing: 0.06em;
+    text-transform: uppercase; margin-top: 8px;
   }
 
-  /* Each slide wrapper */
-  .slide-stage {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-  }
+  .slide-stage { position: relative; display: flex; flex-direction: column; align-items: center; gap: 10px; }
   .slide-stage-meta {
-    font-size: 11px;
-    color: var(--ink-dim);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    display: flex;
-    gap: 16px;
-    align-items: center;
+    font-size: 11px; color: var(--ink-dim); letter-spacing: 0.1em;
+    text-transform: uppercase; display: flex; gap: 16px; align-items: center;
   }
   .slide-stage-meta .dl {
-    color: var(--accent);
-    cursor: pointer;
-    user-select: none;
-    letter-spacing: 0.05em;
-    text-transform: none;
-    font-weight: 600;
+    color: var(--accent); cursor: pointer; user-select: none;
+    letter-spacing: 0.05em; text-transform: none; font-weight: 600;
   }
   .slide-stage-meta .dl:hover { text-decoration: underline; }
 
-  /* The actual slide — 1080x1350 scaled to fit */
   .slide-box {
-    width: 540px;  /* half of 1080 */
-    height: 675px; /* half of 1350 */
-    position: relative;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-    overflow: hidden;
+    width: 540px; height: 675px;
+    position: relative; box-shadow: 0 20px 60px rgba(0,0,0,0.5); overflow: hidden;
   }
   .slide-box > .slide-inner {
-    /* internally rendered at 1080x1350 then scaled to fit 540x675 */
-    width: 1080px;
-    height: 1350px;
-    transform: scale(0.5);
-    transform-origin: top left;
-    position: absolute;
-    top: 0; left: 0;
+    width: 1080px; height: 1350px;
+    transform: scale(0.5); transform-origin: top left;
+    position: absolute; top: 0; left: 0;
   }
 
-  /* Slide content styles (mirrors ig-carousel-shift.html) */
+  /* Slide content styles */
   .slide-inner {
     font-family: 'Inter', sans-serif;
     color: var(--ink-slide, #111);
     background-color: var(--bg-slide, #f2ede3);
     position: relative;
     padding: 140px 120px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+    display: flex; flex-direction: column; justify-content: center;
   }
   .slide-inner.dots {
     background-image: radial-gradient(circle, var(--dot-color, rgba(92, 72, 30, 0.22)) var(--dot-size, 1.6px), transparent var(--dot-size, 1.6px));
@@ -336,20 +215,14 @@
   .slide-inner.align-right { text-align: right; align-items: flex-end; }
 
   .slide-headline {
-    font-family: 'Inter', sans-serif;
-    font-weight: 900;
-    line-height: 0.98;
-    letter-spacing: -0.045em;
-    color: inherit;
+    font-family: 'Inter', sans-serif; font-weight: 900;
+    line-height: 0.98; letter-spacing: -0.045em; color: inherit;
     white-space: pre-wrap;
   }
   .slide-soft {
     font-family: 'Apple Garamond', 'ITC Garamond Std', 'Garamond', 'Hoefler Text', 'Times New Roman', serif;
-    font-style: italic;
-    line-height: 1.18;
-    letter-spacing: -0.005em;
-    color: inherit;
-    white-space: pre-wrap;
+    font-style: italic; line-height: 1.18; letter-spacing: -0.005em;
+    color: inherit; white-space: pre-wrap;
   }
 
   .slide-inner.cta .slide-headline { line-height: 0.9; letter-spacing: -0.06em; }
@@ -359,100 +232,126 @@
   .slide-inner.order-ab .slide-soft { margin-bottom: 40px; }
   .slide-inner.order-ba .slide-soft { margin-top: 40px; }
 
-  /* cover = photo background */
   .slide-inner.cover {
-    padding: 0;
-    background-color: #1a1a1a;
+    padding: 0; background-color: #1a1a1a;
     background-image:
       linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.0) 35%, rgba(0,0,0,0.0) 55%, rgba(0,0,0,0.85) 100%),
       var(--bg-photo, radial-gradient(120% 80% at 50% 40%, #4a463f 0%, #2b2823 45%, #0e0d0b 100%));
-    background-size: cover, cover;
-    background-position: center, center;
+    background-size: cover, cover; background-position: center, center;
   }
   .slide-inner.cover .cover-copy {
-    position: absolute;
-    left: 120px;
-    right: 120px;
-    bottom: 180px;
+    position: absolute; left: 120px; right: 120px; bottom: 180px;
   }
-  .slide-inner.cover .slide-headline { color: #f6f3ec; }
-  .slide-inner.cover .slide-soft { color: #f6f3ec; }
+  .slide-inner.cover .slide-headline, .slide-inner.cover .slide-soft { color: #f6f3ec; }
 
-  /* Slide footer */
   .slide-footer {
-    position: absolute;
-    left: 120px;
-    right: 120px;
-    bottom: 80px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-family: 'Inter', sans-serif;
-    font-weight: 900;
-    font-size: 18px;
-    letter-spacing: 0.18em;
-    color: var(--footer-color, #6b6b6b);
-    text-transform: uppercase;
+    position: absolute; left: 120px; right: 120px; bottom: 80px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: 'Inter', sans-serif; font-weight: 900; font-size: 18px;
+    letter-spacing: 0.18em; color: var(--footer-color, #6b6b6b); text-transform: uppercase;
   }
   .slide-inner.cover .slide-footer { color: rgba(246,243,236,0.7); }
+
   .slide-mark {
-    position: absolute;
-    top: 80px;
-    left: 120px;
-    width: 28px;
-    height: 28px;
-    border: 3px solid currentColor;
-    border-radius: 50%;
-    color: var(--ink-slide, #111);
+    position: absolute; top: 80px; left: 120px;
+    width: 28px; height: 28px; border: 3px solid currentColor;
+    border-radius: 50%; color: var(--ink-slide, #111);
   }
   .slide-inner.cover .slide-mark { color: #f6f3ec; }
 
-  /* Tooltip for keyboard shortcuts etc. (small) */
-  .hint {
-    font-size: 10px;
-    color: var(--ink-dim);
-    margin-top: 4px;
-    font-style: italic;
-  }
-
-  /* Add slide button */
-  .add-slide {
-    margin-top: 8px;
-  }
-
-  /* Sticky action bar at bottom of controls */
-  .action-bar {
-    position: sticky;
-    bottom: 0;
-    background: var(--panel-bg);
-    border-top: 1px solid var(--panel-line);
-    padding: 14px 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    z-index: 10;
-  }
-
-  /* Toast */
-  .toast {
-    position: fixed;
-    bottom: 24px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #1d1d1d;
-    border: 1px solid var(--panel-line);
-    color: var(--ink);
-    padding: 12px 20px;
-    border-radius: 8px;
-    font-size: 13px;
-    z-index: 100;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    opacity: 0;
+  /* Slide icon (decoration image) */
+  .slide-icon {
+    position: absolute;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
     pointer-events: none;
-    transition: opacity .2s, transform .2s;
+  }
+
+  .hint { font-size: 10px; color: var(--ink-dim); margin-top: 4px; font-style: italic; }
+
+  .action-bar {
+    position: sticky; bottom: 0; background: var(--panel-bg);
+    border-top: 1px solid var(--panel-line);
+    padding: 14px 24px; display: flex; flex-direction: column; gap: 8px; z-index: 10;
+  }
+
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: #1d1d1d; border: 1px solid var(--panel-line); color: var(--ink);
+    padding: 12px 20px; border-radius: 8px; font-size: 13px; z-index: 100;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s;
   }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(-6px); }
 
+  /* Modal */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 200; backdrop-filter: blur(4px);
+  }
+  .modal {
+    background: var(--panel-2); border: 1px solid var(--panel-line);
+    border-radius: 10px; padding: 20px 22px; width: 380px; max-width: 90vw;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+  }
+  .modal h3 { font-size: 14px; font-weight: 900; margin-bottom: 12px; letter-spacing: 0.02em; }
+  .modal p { font-size: 13px; color: var(--ink-soft); line-height: 1.5; margin-bottom: 14px; }
+  .modal-input {
+    width: 100%; background: var(--panel-3); border: 1px solid var(--panel-line);
+    color: var(--ink); padding: 10px 12px; font-size: 14px; font-family: inherit;
+    border-radius: 6px; outline: none; margin-bottom: 14px;
+  }
+  .modal-input:focus { border-color: var(--accent); }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+  /* ———————————————————— "info" slide type ———————————————————— */
+  .slide-inner.info {
+    padding: 160px 140px;
+    align-items: flex-start;
+    justify-content: flex-start;
+  }
+  .slide-inner.info .slide-headline {
+    font-size: 92px;
+    line-height: 1.0;
+    letter-spacing: -0.04em;
+    margin-bottom: 60px;
+  }
+  .slide-inner.info .slide-subtitle {
+    font-family: 'Apple Garamond', 'ITC Garamond Std', 'Garamond', 'Hoefler Text', 'Times New Roman', serif;
+    font-style: italic;
+    font-size: 44px;
+    line-height: 1.25;
+    margin-top: -36px;
+    margin-bottom: 60px;
+    color: inherit;
+    opacity: 0.82;
+  }
+  .slide-inner.info .slide-body {
+    font-family: 'Apple Garamond', 'ITC Garamond Std', 'Garamond', 'Hoefler Text', 'Times New Roman', serif;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 38px;
+    line-height: 1.42;
+    letter-spacing: -0.003em;
+    color: inherit;
+    max-width: 780px;
+  }
+  .slide-inner.info .slide-body p + p { margin-top: 28px; }
+
+  .theme-preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 6px; margin-bottom: 10px; }
+  .theme-preview-chip {
+    height: 44px; border-radius: 6px; position: relative;
+    cursor: pointer; border: 2px solid transparent; overflow: hidden;
+    transition: border-color .12s;
+  }
+  .theme-preview-chip.active { border-color: var(--accent); }
+  .theme-preview-chip span {
+    position: absolute; bottom: 3px; left: 0; right: 0; text-align: center;
+    font-size: 9px; font-weight: 900; letter-spacing: 0.05em; text-transform: uppercase;
+    color: var(--tpc-ink, #111); text-shadow: 0 0 4px var(--tpc-bg, #fff);
+  }
 </style>
 </head>
 
@@ -460,74 +359,55 @@
 
 <main class="app">
 
-  <!-- ————————————————— controls ————————————————— -->
   <aside class="controls">
     <header class="app-header">
       <h1>Carousel Maker</h1>
-      <p>Instagram 1080 × 1350 · auto-saves locally</p>
+      <p>Instagram 1080 × 1350 · auto-saves locally · v2</p>
     </header>
 
-    <!-- Global -->
+    <!-- Carousel switcher -->
+    <div class="car-bar">
+      <div class="section-title" style="margin-bottom:10px">Carousel <span class="dim" id="car-meta">—</span></div>
+      <div class="car-row">
+        <select id="car-picker"></select>
+        <button class="btn small" id="car-new" title="New carousel">+</button>
+        <button class="btn small" id="car-dup" title="Duplicate">⧉</button>
+        <button class="btn small" id="car-rename" title="Rename">✎</button>
+        <button class="btn small danger" id="car-delete" title="Delete">✕</button>
+      </div>
+    </div>
+
+    <!-- Global (handle + default theme) -->
     <div class="section" id="global-section">
-      <div class="section-title">Global <span class="dim">applied to every slide</span></div>
-
+      <div class="section-title">Global</div>
       <div class="field">
-        <label>Background (cream slides)</label>
-        <div class="field-row">
-          <input type="color" id="g-bg-color">
-          <input type="text" id="g-bg-hex" placeholder="#f2ede3" maxlength="9">
-        </div>
+        <label>Default theme (used when a slide inherits)</label>
+        <select id="g-default-theme"></select>
       </div>
-
-      <div class="field">
-        <label>Text color</label>
-        <div class="field-row">
-          <input type="color" id="g-ink-color">
-          <input type="text" id="g-ink-hex" placeholder="#111111" maxlength="9">
-        </div>
-      </div>
-
-      <div class="field">
-        <label><input type="checkbox" id="g-dots-enabled"> Bullet-journal dot grid</label>
-      </div>
-
-      <div class="field">
-        <label>Dot color</label>
-        <div class="field-row">
-          <input type="color" id="g-dot-color">
-          <input type="text" id="g-dot-hex" placeholder="#5a4820" maxlength="9">
-        </div>
-      </div>
-
-      <div class="field">
-        <label>Dot opacity <span class="slider-val" id="g-dot-opacity-val">22%</span></label>
-        <input type="range" id="g-dot-opacity" min="0" max="100" value="22">
-      </div>
-
-      <div class="field">
-        <label>Dot size <span class="slider-val" id="g-dot-size-val">1.6px</span></label>
-        <input type="range" id="g-dot-size" min="0.5" max="4" step="0.1" value="1.6">
-      </div>
-
-      <div class="field">
-        <label>Dot spacing <span class="slider-val" id="g-dot-spacing-val">28px</span></label>
-        <input type="range" id="g-dot-spacing" min="12" max="60" step="1" value="28">
-      </div>
-
       <div class="field">
         <label>Handle (footer left)</label>
         <input type="text" id="g-handle" placeholder="@yourhandle">
       </div>
     </div>
 
-    <!-- Slides section (dynamically populated) -->
+    <!-- Themes library -->
+    <div class="section" id="themes-section">
+      <div class="section-title">Themes <span class="dim" id="themes-count">—</span></div>
+      <div id="themes-list"></div>
+      <div class="btn-row" style="margin-top:8px">
+        <button class="btn small" id="theme-new">+ New theme</button>
+      </div>
+    </div>
+
+    <!-- Slides -->
     <div class="section" id="slides-section">
-      <div class="section-title">Slides <span class="dim" id="slides-count">0 slides</span></div>
+      <div class="section-title">Slides <span class="dim" id="slides-count">—</span></div>
       <div id="slides-list"></div>
-      <div class="btn-row add-slide">
+      <div class="btn-row" style="margin-top:8px">
         <button class="btn small" data-add="cover">+ Cover (photo)</button>
         <button class="btn small" data-add="text">+ Text</button>
         <button class="btn small" data-add="cta">+ CTA (3-line)</button>
+        <button class="btn small" data-add="info">+ Info (editorial)</button>
       </div>
     </div>
 
@@ -537,20 +417,20 @@
         <button class="btn primary" id="export-all" style="flex:1">⇣ Download all PNGs</button>
       </div>
       <div class="btn-row">
-        <button class="btn small" id="save-json" style="flex:1">Export design.json</button>
-        <button class="btn small" id="load-json" style="flex:1">Import design.json</button>
-        <button class="btn small danger" id="reset" title="Reset to default">↺</button>
+        <button class="btn small" id="save-json" style="flex:1">Export file</button>
+        <button class="btn small" id="load-json" style="flex:1">Import file</button>
+        <button class="btn small danger" id="reset" title="Reset everything">↺</button>
       </div>
       <input type="file" id="load-json-file" accept="application/json" style="display:none">
     </div>
   </aside>
 
-  <!-- ————————————————— preview ————————————————— -->
   <section class="preview" id="preview">
     <p class="preview-note">
-      Preview at 50% · each slide exports at full 1080 × 1350.
-      Swipe arrow / corner mark only shown in preview; they stay in the PNG too.
+      Preview at 50% · each slide exports at full 1080 × 1350 via html2canvas.<br>
+      Switch carousels or mix themes per slide. Upload tool icons on any slide.
     </p>
+    <div class="preview-title" id="current-carousel-title">—</div>
     <div id="slides-preview"></div>
   </section>
 
@@ -560,151 +440,24 @@
 
 <script>
 /* ============================================================
-   DEFAULT STATE — seed with "The Shift" so first open is useful
-   ============================================================ */
-const defaultState = {
-  version: 1,
-  global: {
-    bgColor: "#f2ede3",
-    inkColor: "#111111",
-    dotsEnabled: true,
-    dotColor: "#5c4820",
-    dotOpacity: 22,
-    dotSize: 1.6,
-    dotSpacing: 28,
-    handle: "@filiphood",
-  },
-  slides: [
-    {
-      id: "s1",
-      type: "cover",
-      photo: null, // data URL
-      headline: "This has become\ntoo heavy.",
-      headlineSize: 132,
-      alignment: "left",
-    },
-    {
-      id: "s2",
-      type: "text",
-      order: "ab", // soft ABOVE headline
-      alignment: "left",
-      soft: "I used to wake up at 4am for sunrises —",
-      headline: "and drag this bag\nacross six continents.",
-      softSize: 54,
-      headlineSize: 108,
-    },
-    {
-      id: "s3",
-      type: "text",
-      order: "ba",
-      alignment: "left",
-      headline: "But every time\nI came home —",
-      soft: "someone had shot it\nbetter. Faster. Luckier.",
-      softSize: 54,
-      headlineSize: 128,
-    },
-    {
-      id: "s4",
-      type: "text",
-      order: "ab",
-      alignment: "left",
-      soft: "And somewhere along the way,\nI realised —",
-      headline: "I loved taking photos.\nI just didn't want it\nas a career.",
-      softSize: 54,
-      headlineSize: 92,
-    },
-    {
-      id: "s5",
-      type: "text",
-      order: "ab",
-      alignment: "left",
-      soft: "Then the world locked down.",
-      headline: "No sunrises.\nNo flights.\nNo gear.",
-      softSize: 54,
-      headlineSize: 140,
-    },
-    {
-      id: "s6",
-      type: "text",
-      order: "ba",
-      alignment: "left",
-      headline: "Stuck inside,\nI found coding.",
-      soft: "Not to escape —\nto make something.",
-      softSize: 54,
-      headlineSize: 128,
-    },
-    {
-      id: "s7",
-      type: "text",
-      order: "ab",
-      alignment: "left",
-      soft: "And suddenly I was fifteen again —",
-      headline: "the kid building websites\nin his room\nafter school.",
-      softSize: 54,
-      headlineSize: 100,
-    },
-    {
-      id: "s8",
-      type: "cta",
-      alignment: "center",
-      softLead: "If you're still carrying\nsomething too heavy —",
-      headline: "stay.",
-      softWhy: "I'll show you what putting it down\nactually looks like.",
-      softSize: 46,
-      headlineSize: 280,
-    },
-  ],
-};
-
-/* ============================================================
-   STATE MANAGEMENT
-   ============================================================ */
-const STORAGE_KEY = "carousel-maker.v1";
-
-function loadState() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    if (parsed.version !== 1) return null;
-    return parsed;
-  } catch { return null; }
-}
-
-function saveState() {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  } catch (err) {
-    toast("⚠️ Storage full — consider smaller photos", 3000);
-  }
-}
-
-let state = loadState() || structuredClone(defaultState);
-
-/* ============================================================
    HELPERS
    ============================================================ */
 function hexToRgba(hex, alpha = 1) {
-  // Accept #rgb, #rrggbb
-  const h = hex.replace("#", "");
+  const h = (hex || "#000").replace("#", "");
   const n = h.length === 3 ? h.split("").map(c => c + c).join("") : h;
-  const r = parseInt(n.substring(0, 2), 16);
-  const g = parseInt(n.substring(2, 4), 16);
-  const b = parseInt(n.substring(4, 6), 16);
+  const r = parseInt(n.substring(0, 2), 16) || 0;
+  const g = parseInt(n.substring(2, 4), 16) || 0;
+  const b = parseInt(n.substring(4, 6), 16) || 0;
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
-
 function sanitizeHex(v) {
   if (!v) return null;
   if (!v.startsWith("#")) v = "#" + v;
-  const clean = v.match(/^#[0-9a-f]{3}$|^#[0-9a-f]{6}$/i);
-  return clean ? v : null;
+  const m = v.match(/^#[0-9a-f]{3}$|^#[0-9a-f]{6}$/i);
+  return m ? v : null;
 }
-
-function esc(s) {
-  return (s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
-
+function esc(s) { return (s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+function uid(prefix = "id") { return prefix + "-" + Date.now() + "-" + Math.floor(Math.random() * 9999); }
 function toast(msg, ms = 1500) {
   const el = document.getElementById("toast");
   el.textContent = msg;
@@ -713,72 +466,311 @@ function toast(msg, ms = 1500) {
   toast._t = setTimeout(() => el.classList.remove("show"), ms);
 }
 
+// Inline modal replacement for native prompt() — works consistently in all browsers
+function askName(title, defaultValue = "", placeholder = "") {
+  return new Promise((resolve) => {
+    if (document.querySelector(".modal-overlay")) return resolve(null);
+    const overlay = document.createElement("div");
+    overlay.className = "modal-overlay";
+    overlay.innerHTML = `
+      <div class="modal">
+        <h3>${esc(title)}</h3>
+        <input type="text" class="modal-input" value="${esc(defaultValue)}" placeholder="${esc(placeholder)}">
+        <div class="modal-actions">
+          <button class="btn small" data-act="cancel">Cancel</button>
+          <button class="btn small primary" data-act="ok">OK</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    const input = overlay.querySelector(".modal-input");
+    input.focus(); input.select();
+    const close = (v) => { overlay.remove(); resolve(v); };
+    overlay.addEventListener("click", (e) => { if (e.target === overlay) close(null); });
+    overlay.querySelector('[data-act="cancel"]').addEventListener("click", () => close(null));
+    overlay.querySelector('[data-act="ok"]').addEventListener("click", () => close(input.value.trim() || null));
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") { e.preventDefault(); close(input.value.trim() || null); }
+      if (e.key === "Escape") close(null);
+    });
+  });
+}
+
+// Modal confirm (for delete actions — more reliable than native confirm in some browsers)
+function askConfirm(msg, confirmLabel = "Delete", danger = true) {
+  return new Promise((resolve) => {
+    if (document.querySelector(".modal-overlay")) return resolve(false);
+    const overlay = document.createElement("div");
+    overlay.className = "modal-overlay";
+    overlay.innerHTML = `
+      <div class="modal">
+        <p>${esc(msg)}</p>
+        <div class="modal-actions">
+          <button class="btn small" data-act="cancel">Cancel</button>
+          <button class="btn small ${danger ? "danger" : "primary"}" data-act="ok">${esc(confirmLabel)}</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    const close = (v) => { overlay.remove(); resolve(v); };
+    overlay.addEventListener("click", (e) => { if (e.target === overlay) close(false); });
+    overlay.querySelector('[data-act="cancel"]').addEventListener("click", () => close(false));
+    overlay.querySelector('[data-act="ok"]').addEventListener("click", () => close(true));
+    document.addEventListener("keydown", function esc(e) {
+      if (e.key === "Escape") { close(false); document.removeEventListener("keydown", esc); }
+    });
+  });
+}
+
+/* ============================================================
+   SEED THEMES + SEED "THE SHIFT" CAROUSEL
+   ============================================================ */
+function seedThemes() {
+  return {
+    "cream-dots": {
+      id: "cream-dots", name: "Cream + Dots",
+      bgColor: "#f2ede3", inkColor: "#111111",
+      dotsEnabled: true, dotColor: "#5c4820", dotOpacity: 22, dotSize: 1.6, dotSpacing: 28,
+    },
+    "cream-plain": {
+      id: "cream-plain", name: "Cream (no dots)",
+      bgColor: "#f2ede3", inkColor: "#111111",
+      dotsEnabled: false, dotColor: "#5c4820", dotOpacity: 22, dotSize: 1.6, dotSpacing: 28,
+    },
+    "black-minimal": {
+      id: "black-minimal", name: "Black minimal",
+      bgColor: "#0e0e0e", inkColor: "#f6f3ec",
+      dotsEnabled: false, dotColor: "#ffffff", dotOpacity: 10, dotSize: 1.6, dotSpacing: 32,
+    },
+    "dark-green": {
+      id: "dark-green", name: "Dark green",
+      bgColor: "#0d2a22", inkColor: "#f1ead6",
+      dotsEnabled: false, dotColor: "#f1ead6", dotOpacity: 8, dotSize: 1.6, dotSpacing: 30,
+    },
+  };
+}
+
+function seedShift() {
+  return {
+    id: "shift", name: "The Shift",
+    slides: [
+      { id: uid("s"), type: "cover", themeId: "__default__", alignment: "left",
+        photo: null, headline: "This has become\ntoo heavy.", headlineSize: 132, icon: null },
+      { id: uid("s"), type: "text", themeId: "__default__", order: "ab", alignment: "left",
+        soft: "I used to wake up at 4am for sunrises —",
+        headline: "and drag this bag\nacross six continents.",
+        softSize: 54, headlineSize: 108, icon: null },
+      { id: uid("s"), type: "text", themeId: "__default__", order: "ba", alignment: "left",
+        headline: "But every time\nI came home —",
+        soft: "someone had shot it\nbetter. Faster. Luckier.",
+        softSize: 54, headlineSize: 128, icon: null },
+      { id: uid("s"), type: "text", themeId: "__default__", order: "ab", alignment: "left",
+        soft: "And somewhere along the way,\nI realised —",
+        headline: "I loved taking photos.\nI just didn't want it\nas a career.",
+        softSize: 54, headlineSize: 92, icon: null },
+      { id: uid("s"), type: "text", themeId: "__default__", order: "ab", alignment: "left",
+        soft: "Then the world locked down.",
+        headline: "No sunrises.\nNo flights.\nNo gear.",
+        softSize: 54, headlineSize: 140, icon: null },
+      { id: uid("s"), type: "text", themeId: "__default__", order: "ba", alignment: "left",
+        headline: "Stuck inside,\nI found coding.",
+        soft: "Not to escape —\nto make something.",
+        softSize: 54, headlineSize: 128, icon: null },
+      { id: uid("s"), type: "text", themeId: "__default__", order: "ab", alignment: "left",
+        soft: "And suddenly I was fifteen again —",
+        headline: "the kid building websites\nin his room\nafter school.",
+        softSize: 54, headlineSize: 100, icon: null },
+      { id: uid("s"), type: "cta", themeId: "__default__", alignment: "center",
+        softLead: "If you're still carrying\nsomething too heavy —",
+        headline: "stay.",
+        softWhy: "I'll show you what putting it down\nactually looks like.",
+        softSize: 46, headlineSize: 280, icon: null },
+    ]
+  };
+}
+
+/* ============================================================
+   DEFAULT STATE (fresh) + V1 MIGRATION
+   ============================================================ */
+function seedToolReviews() {
+  return {
+    id: "tool-reviews", name: "AI Tools I Use",
+    slides: [
+      { id: uid("s"), type: "cover", themeId: "__default__", alignment: "left",
+        photo: null, headline: "Tools I use\nto build apps\nin 2026.", headlineSize: 116, icon: null },
+      { id: uid("s"), type: "info", themeId: "__default__", alignment: "left",
+        headline: "XCODE",
+        subtitle: "As an iOS developer, it's still a must.",
+        body: "Huge advantage of iOS development is that you use the same language (Swift) for the front-end and the back-end.\n\nSome devs have started to rely on VS Code + Claude Code for the writing, but Xcode is where you ship.\n\nNewest version supports agentic coding workflows.",
+        headlineSize: 108, subtitleSize: 46, bodySize: 38, icon: null },
+      { id: uid("s"), type: "info", themeId: "__default__", alignment: "left",
+        headline: "CLAUDE CODE",
+        subtitle: "Still my number-one coding agent.",
+        body: "Works from the terminal, inside VS Code or Cursor, and most recently via its own web interface.\n\nUse plan mode to plan tasks before writing a single line.\n\nCLAUDE.md + Skills turn it from an autocomplete into a teammate.",
+        headlineSize: 108, subtitleSize: 46, bodySize: 38, icon: null },
+      { id: uid("s"), type: "info", themeId: "__default__", alignment: "left",
+        headline: "REVENUECAT",
+        subtitle: "The cleanest way to handle in-app payments.",
+        body: "Drop-in SDK for iOS / Android / web — A/B-testable paywalls with zero code changes.\n\nHandles receipts, renewals, refunds, and cross-platform entitlements for you.\n\nFree until you cross the revenue threshold, so it's a no-brainer to start with.",
+        headlineSize: 108, subtitleSize: 46, bodySize: 38, icon: null },
+      { id: uid("s"), type: "cta", themeId: "__default__", alignment: "center",
+        softLead: "Which one should I break down next?",
+        headline: "reply.",
+        softWhy: "Drop a tool name in the comments and I'll film it.",
+        softSize: 46, headlineSize: 280, icon: null },
+    ]
+  };
+}
+
+function freshState() {
+  const themes = seedThemes();
+  const shift = seedShift();
+  const tools = seedToolReviews();
+  return {
+    version: 2,
+    handle: "@filiphood",
+    defaultThemeId: "cream-dots",
+    currentCarouselId: shift.id,
+    themes,
+    carousels: { [shift.id]: shift, [tools.id]: tools },
+  };
+}
+
+function migrateV1(v1) {
+  const themeId = "my-style";
+  const shift = seedShift();
+  return {
+    version: 2,
+    handle: v1.global.handle || "@filiphood",
+    defaultThemeId: themeId,
+    currentCarouselId: "migrated",
+    themes: {
+      [themeId]: {
+        id: themeId, name: "My Style (from v1)",
+        bgColor: v1.global.bgColor, inkColor: v1.global.inkColor,
+        dotsEnabled: v1.global.dotsEnabled, dotColor: v1.global.dotColor,
+        dotOpacity: v1.global.dotOpacity, dotSize: v1.global.dotSize, dotSpacing: v1.global.dotSpacing,
+      },
+      ...seedThemes(),
+    },
+    carousels: {
+      "migrated": {
+        id: "migrated", name: "My Carousel (v1)",
+        slides: v1.slides.map(s => ({ ...s, themeId: "__default__", icon: null })),
+      },
+      [shift.id]: shift,
+    },
+  };
+}
+
+/* ============================================================
+   STATE (load / save)
+   ============================================================ */
+const STORAGE_KEY = "carousel-maker.v2";
+const STORAGE_KEY_V1 = "carousel-maker.v1";
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed.version === 2) return parsed;
+    }
+    // try migrating from v1
+    const v1raw = localStorage.getItem(STORAGE_KEY_V1);
+    if (v1raw) {
+      const v1 = JSON.parse(v1raw);
+      if (v1.version === 1) {
+        const migrated = migrateV1(v1);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
+        toast("✓ Migrated from v1", 2200);
+        return migrated;
+      }
+    }
+  } catch (err) { console.warn("loadState failed:", err); }
+  return null;
+}
+
+function saveState() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+  catch { toast("⚠️ Storage full — compress photos", 3000); }
+}
+
+let state = loadState() || freshState();
+
+/* ============================================================
+   HELPERS THAT USE STATE
+   ============================================================ */
+function currentCarousel() {
+  return state.carousels[state.currentCarouselId] || Object.values(state.carousels)[0];
+}
+function slidesOf() { return currentCarousel().slides; }
+
+function getTheme(themeId) {
+  if (themeId === "__default__" || !themeId) return state.themes[state.defaultThemeId] || firstTheme();
+  return state.themes[themeId] || state.themes[state.defaultThemeId] || firstTheme();
+}
+function firstTheme() { return Object.values(state.themes)[0]; }
+
 /* ============================================================
    RENDER — PREVIEW
    ============================================================ */
 function renderPreview() {
   const root = document.getElementById("slides-preview");
-  const g = state.global;
-  const dotRgba = hexToRgba(g.dotColor, g.dotOpacity / 100);
+  const car = currentCarousel();
+  document.getElementById("current-carousel-title").textContent = car.name;
 
-  root.innerHTML = state.slides.map((s, i) => renderSlideStage(s, i, g, dotRgba)).join("");
+  root.innerHTML = car.slides.map((s, i) => renderSlideStage(s, i)).join("");
 
-  // Wire download links
   root.querySelectorAll(".dl").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const idx = parseInt(btn.dataset.idx, 10);
-      exportSlide(idx);
-    });
+    btn.addEventListener("click", () => exportSlide(parseInt(btn.dataset.idx, 10)));
   });
 }
 
-function renderSlideStage(s, i, g, dotRgba) {
-  const inner = renderSlideInner(s, i, g, dotRgba);
-  const n = i + 1;
-  const total = state.slides.length;
-  const pad = String(n).padStart(2, "0");
-  const totalPad = String(total).padStart(2, "0");
+function renderSlideStage(s, i) {
+  const total = slidesOf().length;
+  const n = String(i + 1).padStart(2, "0");
+  const t = String(total).padStart(2, "0");
   return `
     <div class="slide-stage">
       <div class="slide-stage-meta">
-        <span>SLIDE ${pad} / ${totalPad}</span>
+        <span>SLIDE ${n} / ${t}</span>
         <span class="dl" data-idx="${i}">⇣ download png</span>
       </div>
-      <div class="slide-box" id="slide-box-${i}">
-        ${inner}
-      </div>
+      <div class="slide-box" id="slide-box-${i}">${renderSlideInner(s, i)}</div>
     </div>
   `;
 }
 
-function renderSlideInner(s, i, g, dotRgba) {
+function renderSlideInner(s, i) {
+  const theme = getTheme(s.themeId);
+  const handle = esc(state.handle || "");
+  const n = String(i + 1).padStart(2, "0");
+  const total = String(slidesOf().length).padStart(2, "0");
+  const pageMark = `${n} / ${total}`;
+
+  const dotRgba = hexToRgba(theme.dotColor, theme.dotOpacity / 100);
   const styleVars = [
-    `--bg-slide:${g.bgColor}`,
-    `--ink-slide:${g.inkColor}`,
-    `--footer-color:${hexToRgba(g.inkColor, 0.5)}`,
+    `--bg-slide:${theme.bgColor}`,
+    `--ink-slide:${theme.inkColor}`,
+    `--footer-color:${hexToRgba(theme.inkColor, 0.5)}`,
     `--dot-color:${dotRgba}`,
-    `--dot-size:${g.dotSize}px`,
-    `--dot-spacing:${g.dotSpacing}px`,
+    `--dot-size:${theme.dotSize}px`,
+    `--dot-spacing:${theme.dotSpacing}px`,
   ].join(";");
 
   const classList = ["slide-inner"];
-  if (g.dotsEnabled && s.type !== "cover") classList.push("dots");
+  if (theme.dotsEnabled && s.type !== "cover") classList.push("dots");
   classList.push(s.type);
   if (s.type === "text") classList.push("order-" + (s.order || "ba"));
   classList.push("align-" + (s.alignment || "left"));
 
-  const handle = esc(g.handle || "");
-  const n = String(i + 1).padStart(2, "0");
-  const total = String(state.slides.length).padStart(2, "0");
-  const pageMark = `${n} / ${total}`;
-
-  let body = "";
+  const iconHTML = renderIconHTML(s.icon);
 
   if (s.type === "cover") {
     const photoStyle = s.photo ? `--bg-photo: url('${s.photo}')` : "";
     return `
       <div class="slide-inner cover align-${s.alignment || "left"}" data-slide-id="${s.id}" style="${styleVars};${photoStyle}">
         <div class="slide-mark"></div>
+        ${iconHTML}
         <div class="cover-copy">
           <div class="slide-headline" style="color:#f6f3ec;font-size:${s.headlineSize || 132}px">${esc(s.headline || "")}</div>
         </div>
@@ -790,6 +782,7 @@ function renderSlideInner(s, i, g, dotRgba) {
     return `
       <div class="${classList.join(" ")}" data-slide-id="${s.id}" style="${styleVars}">
         <div class="slide-mark"></div>
+        ${iconHTML}
         <div class="slide-soft lead" style="font-size:${s.softSize || 46}px">${esc(s.softLead || "")}</div>
         <div class="slide-headline" style="font-size:${s.headlineSize || 280}px">${esc(s.headline || "")}</div>
         <div class="slide-soft why" style="font-size:${s.softSize || 46}px">${esc(s.softWhy || "")}</div>
@@ -797,150 +790,403 @@ function renderSlideInner(s, i, g, dotRgba) {
       </div>`;
   }
 
+  if (s.type === "info") {
+    const subtitleEl = s.subtitle
+      ? `<div class="slide-subtitle" style="font-size:${s.subtitleSize || 44}px">${esc(s.subtitle)}</div>`
+      : "";
+    const paragraphs = (s.body || "").split(/\n\s*\n/).map(p => `<p>${esc(p.trim())}</p>`).join("");
+    return `
+      <div class="${classList.join(" ")}" data-slide-id="${s.id}" style="${styleVars}">
+        <div class="slide-mark"></div>
+        ${iconHTML}
+        <div class="slide-headline" style="font-size:${s.headlineSize || 92}px">${esc(s.headline || "")}</div>
+        ${subtitleEl}
+        <div class="slide-body" style="font-size:${s.bodySize || 38}px">${paragraphs}</div>
+        <div class="slide-footer"><span>${handle}</span><span>${pageMark}</span></div>
+      </div>`;
+  }
+
   // text
   const softEl = `<div class="slide-soft" style="font-size:${s.softSize || 54}px">${esc(s.soft || "")}</div>`;
   const headlineEl = `<div class="slide-headline" style="font-size:${s.headlineSize || 108}px">${esc(s.headline || "")}</div>`;
-
   const children = s.order === "ab" ? [softEl, headlineEl] : [headlineEl, softEl];
 
   return `
     <div class="${classList.join(" ")}" data-slide-id="${s.id}" style="${styleVars}">
       <div class="slide-mark"></div>
+      ${iconHTML}
       ${children.join("")}
       <div class="slide-footer"><span>${handle}</span><span>${pageMark}</span></div>
     </div>`;
 }
 
-/* ============================================================
-   RENDER — CONTROLS
-   ============================================================ */
-function renderGlobalControls() {
-  const g = state.global;
-  document.getElementById("g-bg-color").value = g.bgColor;
-  document.getElementById("g-bg-hex").value = g.bgColor;
-  document.getElementById("g-ink-color").value = g.inkColor;
-  document.getElementById("g-ink-hex").value = g.inkColor;
-  document.getElementById("g-dots-enabled").checked = g.dotsEnabled;
-  document.getElementById("g-dot-color").value = g.dotColor;
-  document.getElementById("g-dot-hex").value = g.dotColor;
-  document.getElementById("g-dot-opacity").value = g.dotOpacity;
-  document.getElementById("g-dot-opacity-val").textContent = g.dotOpacity + "%";
-  document.getElementById("g-dot-size").value = g.dotSize;
-  document.getElementById("g-dot-size-val").textContent = g.dotSize + "px";
-  document.getElementById("g-dot-spacing").value = g.dotSpacing;
-  document.getElementById("g-dot-spacing-val").textContent = g.dotSpacing + "px";
-  document.getElementById("g-handle").value = g.handle;
+function renderIconHTML(icon) {
+  if (!icon || !icon.image) return "";
+  const size = icon.size || 180;
+  const offset = icon.offset != null ? icon.offset : 120;
+  const pos = icon.position || "top-center";
+  let style = `width:${size}px;height:${size}px;background-image:url('${icon.image}');`;
+  switch (pos) {
+    case "top-left":
+      style += `top:${offset}px;left:${offset}px;`; break;
+    case "top-center":
+      style += `top:${offset}px;left:50%;transform:translateX(-50%);`; break;
+    case "top-right":
+      style += `top:${offset}px;right:${offset}px;`; break;
+    case "middle-left":
+      style += `top:50%;left:${offset}px;transform:translateY(-50%);`; break;
+    case "center":
+      style += `top:50%;left:50%;transform:translate(-50%,-50%);`; break;
+    case "middle-right":
+      style += `top:50%;right:${offset}px;transform:translateY(-50%);`; break;
+    case "bottom-left":
+      style += `bottom:${offset}px;left:${offset}px;`; break;
+    case "bottom-center":
+      style += `bottom:${offset}px;left:50%;transform:translateX(-50%);`; break;
+    case "bottom-right":
+      style += `bottom:${offset}px;right:${offset}px;`; break;
+  }
+  return `<div class="slide-icon" style="${style}"></div>`;
 }
 
-function renderSlidesList() {
-  const list = document.getElementById("slides-list");
-  document.getElementById("slides-count").textContent =
-    state.slides.length + " slide" + (state.slides.length === 1 ? "" : "s");
+/* ============================================================
+   RENDER — CAROUSEL PICKER
+   ============================================================ */
+function renderCarouselPicker() {
+  const sel = document.getElementById("car-picker");
+  sel.innerHTML = Object.values(state.carousels)
+    .map(c => `<option value="${c.id}" ${c.id === state.currentCarouselId ? "selected" : ""}>${esc(c.name)} · ${c.slides.length} slides</option>`)
+    .join("");
+  const car = currentCarousel();
+  document.getElementById("car-meta").textContent = `${car.slides.length} slide${car.slides.length === 1 ? "" : "s"}`;
+}
 
-  list.innerHTML = state.slides.map((s, i) => slideCardHTML(s, i)).join("");
+/* ============================================================
+   RENDER — GLOBAL
+   ============================================================ */
+function renderGlobalControls() {
+  const sel = document.getElementById("g-default-theme");
+  sel.innerHTML = Object.values(state.themes)
+    .map(t => `<option value="${t.id}" ${t.id === state.defaultThemeId ? "selected" : ""}>${esc(t.name)}</option>`)
+    .join("");
+  document.getElementById("g-handle").value = state.handle || "";
+}
 
-  // Wire up per-slide events
-  list.querySelectorAll(".slide-card").forEach((card, idx) => {
-    const head = card.querySelector(".slide-card-head");
-    head.addEventListener("click", (e) => {
-      if (e.target.closest(".slide-card-head-actions")) return;
-      card.classList.toggle("open");
+/* ============================================================
+   RENDER — THEMES LIST
+   ============================================================ */
+function renderThemesList() {
+  const root = document.getElementById("themes-list");
+  const themes = Object.values(state.themes);
+  document.getElementById("themes-count").textContent = themes.length + " theme" + (themes.length === 1 ? "" : "s");
+
+  root.innerHTML = themes.map(t => themeCardHTML(t)).join("");
+
+  root.querySelectorAll(".card-head").forEach((h) => {
+    h.addEventListener("click", (e) => {
+      if (e.target.closest(".card-actions")) return;
+      h.parentElement.classList.toggle("open");
     });
   });
 
-  list.querySelectorAll("[data-slide-field]").forEach((el) => {
-    el.addEventListener("input", (e) => {
-      const idx = parseInt(el.closest(".slide-card").dataset.idx, 10);
+  root.querySelectorAll("[data-theme-field]").forEach((el) => {
+    el.addEventListener("input", () => {
+      const card = el.closest(".card");
+      const id = card.dataset.themeId;
+      const field = el.dataset.themeField;
+      let v = el.value;
+      if (el.type === "number" || el.type === "range") v = parseFloat(v);
+      if (el.type === "checkbox") v = el.checked;
+      state.themes[id][field] = v;
+      saveState();
+
+      const readout = el.parentElement.querySelector(".slider-val");
+      if (readout && (el.type === "range" || el.type === "number")) {
+        const unit = el.dataset.unit || "";
+        readout.textContent = v + unit;
+      }
+      // color hex mirror
+      if (el.type === "color") {
+        const mirror = card.querySelector(`[data-theme-hex-for="${field}"]`);
+        if (mirror) mirror.value = el.value;
+      }
+      renderPreview();
+      // Also re-sync the "preview swatch" in the theme head:
+      renderCarouselPicker(); // no-op for themes but safe
+      // Targeted swatch refresh:
+      const swatchEl = card.querySelector(".theme-swatch");
+      if (swatchEl) swatchEl.style.background = state.themes[id].bgColor;
+    });
+  });
+
+  root.querySelectorAll("[data-theme-hex]").forEach((el) => {
+    el.addEventListener("input", () => {
+      const card = el.closest(".card");
+      const id = card.dataset.themeId;
+      const field = el.dataset.themeHex;
+      const v = sanitizeHex(el.value);
+      if (!v) return;
+      state.themes[id][field] = v;
+      card.querySelector(`[data-theme-field="${field}"]`).value = v;
+      saveState();
+      renderPreview();
+      const swatchEl = card.querySelector(".theme-swatch");
+      if (swatchEl) swatchEl.style.background = state.themes[id].bgColor;
+    });
+  });
+
+  root.querySelectorAll("[data-theme-rename]").forEach((el) => {
+    el.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      const id = el.closest(".card").dataset.themeId;
+      const name = await askName("Rename theme", state.themes[id].name);
+      if (!name) return;
+      state.themes[id].name = name;
+      saveState();
+      renderThemesList(); renderGlobalControls(); renderSlidesList(); renderCarouselPicker();
+    });
+  });
+
+  root.querySelectorAll("[data-theme-duplicate]").forEach((el) => {
+    el.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const id = el.closest(".card").dataset.themeId;
+      const src = state.themes[id];
+      const newId = uid("theme");
+      state.themes[newId] = { ...structuredClone(src), id: newId, name: src.name + " (copy)" };
+      saveState();
+      renderThemesList(); renderGlobalControls(); renderSlidesList();
+      toast("✓ Theme duplicated");
+    });
+  });
+
+  root.querySelectorAll("[data-theme-delete]").forEach((el) => {
+    el.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      const id = el.closest(".card").dataset.themeId;
+      if (Object.keys(state.themes).length <= 1) { toast("Can't delete last theme"); return; }
+      const ok = await askConfirm(`Delete theme "${state.themes[id].name}"? Slides using it will fall back to the default.`);
+      if (!ok) return;
+      delete state.themes[id];
+      if (state.defaultThemeId === id) state.defaultThemeId = Object.keys(state.themes)[0];
+      Object.values(state.carousels).forEach(c => c.slides.forEach(s => { if (s.themeId === id) s.themeId = "__default__"; }));
+      saveState();
+      renderThemesList(); renderGlobalControls(); renderSlidesList(); renderPreview();
+    });
+  });
+}
+
+function themeCardHTML(t) {
+  return `
+    <div class="card" data-theme-id="${t.id}">
+      <div class="card-head">
+        <div style="display:flex;align-items:center;gap:6px">
+          <span class="theme-swatch" style="background:${t.bgColor}"></span>
+          <div>
+            <h3>${esc(t.name)}</h3>
+            <div class="sub">${t.bgColor} · ${t.dotsEnabled ? "dots" : "plain"}</div>
+          </div>
+        </div>
+        <div class="card-actions">
+          <button class="btn small" data-theme-duplicate title="Duplicate">⧉</button>
+          <button class="btn small" data-theme-rename title="Rename">✎</button>
+          <button class="btn small danger" data-theme-delete title="Delete">✕</button>
+          <span class="chev">▾</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="field">
+          <label>Background</label>
+          <div class="field-row">
+            <input type="color" data-theme-field="bgColor" value="${t.bgColor}">
+            <input type="text" data-theme-hex="bgColor" data-theme-hex-for="bgColor" value="${t.bgColor}" maxlength="9">
+          </div>
+        </div>
+        <div class="field">
+          <label>Text color</label>
+          <div class="field-row">
+            <input type="color" data-theme-field="inkColor" value="${t.inkColor}">
+            <input type="text" data-theme-hex="inkColor" data-theme-hex-for="inkColor" value="${t.inkColor}" maxlength="9">
+          </div>
+        </div>
+        <div class="field">
+          <label><input type="checkbox" data-theme-field="dotsEnabled" ${t.dotsEnabled ? "checked" : ""}> Bullet-journal dots</label>
+        </div>
+        <div class="field">
+          <label>Dot color</label>
+          <div class="field-row">
+            <input type="color" data-theme-field="dotColor" value="${t.dotColor}">
+            <input type="text" data-theme-hex="dotColor" data-theme-hex-for="dotColor" value="${t.dotColor}" maxlength="9">
+          </div>
+        </div>
+        <div class="field">
+          <label>Dot opacity <span class="slider-val">${t.dotOpacity}%</span></label>
+          <input type="range" data-theme-field="dotOpacity" data-unit="%" min="0" max="100" value="${t.dotOpacity}">
+        </div>
+        <div class="field">
+          <label>Dot size <span class="slider-val">${t.dotSize}px</span></label>
+          <input type="range" data-theme-field="dotSize" data-unit="px" min="0.5" max="4" step="0.1" value="${t.dotSize}">
+        </div>
+        <div class="field">
+          <label>Dot spacing <span class="slider-val">${t.dotSpacing}px</span></label>
+          <input type="range" data-theme-field="dotSpacing" data-unit="px" min="12" max="60" step="1" value="${t.dotSpacing}">
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/* ============================================================
+   RENDER — SLIDES LIST
+   ============================================================ */
+function renderSlidesList() {
+  const root = document.getElementById("slides-list");
+  const slides = slidesOf();
+  document.getElementById("slides-count").textContent = slides.length + " slide" + (slides.length === 1 ? "" : "s");
+
+  root.innerHTML = slides.map((s, i) => slideCardHTML(s, i)).join("");
+
+  root.querySelectorAll(".card-head").forEach((h) => {
+    h.addEventListener("click", (e) => {
+      if (e.target.closest(".card-actions")) return;
+      h.parentElement.classList.toggle("open");
+    });
+  });
+
+  root.querySelectorAll("[data-slide-field]").forEach((el) => {
+    el.addEventListener("input", () => {
+      const idx = parseInt(el.closest(".card").dataset.idx, 10);
       const field = el.dataset.slideField;
       let v = el.value;
       if (el.type === "number" || el.type === "range") v = parseFloat(v);
-      state.slides[idx][field] = v;
+      slidesOf()[idx][field] = v;
       saveState();
       renderPreview();
-      // Also sync the "size" readout if present
       const readout = el.parentElement.querySelector(".slider-val");
-      if (readout && (el.type === "range" || el.type === "number")) readout.textContent = v + "px";
+      if (readout && (el.type === "range" || el.type === "number")) {
+        readout.textContent = v + (el.dataset.unit || "px");
+      }
     });
   });
 
-  list.querySelectorAll("[data-slide-chip]").forEach((el) => {
+  root.querySelectorAll("[data-slide-chip]").forEach((el) => {
     el.addEventListener("click", () => {
-      const idx = parseInt(el.closest(".slide-card").dataset.idx, 10);
+      const idx = parseInt(el.closest(".card").dataset.idx, 10);
       const field = el.dataset.slideField;
-      const v = el.dataset.slideChip;
-      state.slides[idx][field] = v;
+      slidesOf()[idx][field] = el.dataset.slideChip;
       saveState();
-      renderSlidesList(); // re-render chips to show active state
-      renderPreview();
+      renderSlidesList(); renderPreview();
     });
   });
 
-  list.querySelectorAll("[data-slide-delete]").forEach((el) => {
-    el.addEventListener("click", (e) => {
+  root.querySelectorAll("[data-slide-delete]").forEach((el) => {
+    el.addEventListener("click", async (e) => {
       e.stopPropagation();
-      const idx = parseInt(el.closest(".slide-card").dataset.idx, 10);
-      if (state.slides.length <= 1) { toast("Can't delete last slide"); return; }
-      if (!confirm(`Delete slide ${idx + 1}?`)) return;
-      state.slides.splice(idx, 1);
-      saveState();
-      renderSlidesList();
-      renderPreview();
+      const idx = parseInt(el.closest(".card").dataset.idx, 10);
+      if (slidesOf().length <= 1) { toast("Can't delete last slide"); return; }
+      const ok = await askConfirm(`Delete slide ${idx + 1}?`);
+      if (!ok) return;
+      slidesOf().splice(idx, 1);
+      saveState(); renderSlidesList(); renderPreview();
     });
   });
 
-  list.querySelectorAll("[data-slide-up], [data-slide-down]").forEach((el) => {
+  root.querySelectorAll("[data-slide-up], [data-slide-down]").forEach((el) => {
     el.addEventListener("click", (e) => {
       e.stopPropagation();
-      const idx = parseInt(el.closest(".slide-card").dataset.idx, 10);
+      const idx = parseInt(el.closest(".card").dataset.idx, 10);
       const delta = el.dataset.slideUp !== undefined ? -1 : 1;
       const j = idx + delta;
-      if (j < 0 || j >= state.slides.length) return;
-      [state.slides[idx], state.slides[j]] = [state.slides[j], state.slides[idx]];
-      saveState();
-      renderSlidesList();
-      renderPreview();
+      const sl = slidesOf();
+      if (j < 0 || j >= sl.length) return;
+      [sl[idx], sl[j]] = [sl[j], sl[idx]];
+      saveState(); renderSlidesList(); renderPreview();
     });
   });
 
-  list.querySelectorAll("[data-slide-photo]").forEach((el) => {
+  root.querySelectorAll("[data-slide-photo]").forEach((el) => {
     el.addEventListener("change", (e) => {
       const file = e.target.files?.[0];
       if (!file) return;
-      const idx = parseInt(el.closest(".slide-card").dataset.idx, 10);
+      const idx = parseInt(el.closest(".card").dataset.idx, 10);
       const reader = new FileReader();
       reader.onload = () => {
-        state.slides[idx].photo = reader.result;
-        saveState();
-        renderPreview();
+        slidesOf()[idx].photo = reader.result;
+        saveState(); renderSlidesList(); renderPreview();
         toast("Photo loaded");
       };
       reader.readAsDataURL(file);
     });
   });
 
-  list.querySelectorAll("[data-slide-photo-clear]").forEach((el) => {
+  root.querySelectorAll("[data-slide-photo-clear]").forEach((el) => {
     el.addEventListener("click", (e) => {
       e.stopPropagation();
-      const idx = parseInt(el.closest(".slide-card").dataset.idx, 10);
-      state.slides[idx].photo = null;
-      saveState();
-      renderSlidesList();
-      renderPreview();
+      const idx = parseInt(el.closest(".card").dataset.idx, 10);
+      slidesOf()[idx].photo = null;
+      saveState(); renderSlidesList(); renderPreview();
+    });
+  });
+
+  // Icon upload
+  root.querySelectorAll("[data-slide-icon]").forEach((el) => {
+    el.addEventListener("change", (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const idx = parseInt(el.closest(".card").dataset.idx, 10);
+      const reader = new FileReader();
+      reader.onload = () => {
+        const s = slidesOf()[idx];
+        s.icon = s.icon || { position: "top-center", size: 180, offset: 120 };
+        s.icon.image = reader.result;
+        saveState(); renderSlidesList(); renderPreview();
+        toast("Icon loaded");
+      };
+      reader.readAsDataURL(file);
+    });
+  });
+  root.querySelectorAll("[data-slide-icon-clear]").forEach((el) => {
+    el.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const idx = parseInt(el.closest(".card").dataset.idx, 10);
+      slidesOf()[idx].icon = null;
+      saveState(); renderSlidesList(); renderPreview();
+    });
+  });
+  root.querySelectorAll("[data-icon-field]").forEach((el) => {
+    el.addEventListener("input", () => {
+      const idx = parseInt(el.closest(".card").dataset.idx, 10);
+      const field = el.dataset.iconField;
+      let v = el.value;
+      if (el.type === "number" || el.type === "range") v = parseFloat(v);
+      const s = slidesOf()[idx];
+      if (!s.icon) return;
+      s.icon[field] = v;
+      saveState(); renderPreview();
+      const readout = el.parentElement.querySelector(".slider-val");
+      if (readout && (el.type === "range" || el.type === "number")) readout.textContent = v + "px";
+    });
+  });
+  root.querySelectorAll("[data-icon-chip]").forEach((el) => {
+    el.addEventListener("click", () => {
+      const idx = parseInt(el.closest(".card").dataset.idx, 10);
+      const s = slidesOf()[idx];
+      if (!s.icon) return;
+      s.icon.position = el.dataset.iconChip;
+      saveState(); renderSlidesList(); renderPreview();
     });
   });
 }
 
 function slideCardHTML(s, i) {
-  const typeLabel = { cover: "Photo cover", text: "Text", cta: "CTA (3-line)" }[s.type] || s.type;
+  const typeLabel = { cover: "Photo cover", text: "Text", cta: "CTA (3-line)", info: "Info (editorial)" }[s.type] || s.type;
   const preview = {
     cover: (s.headline || "").split("\n")[0] || "(no text)",
     text: ((s.order === "ab" ? s.soft : s.headline) || "").split("\n")[0] || "(empty)",
     cta: s.headline || "(empty)",
+    info: s.headline || "(empty)",
   }[s.type];
 
-  let body = "";
-
-  // Alignment chip
   const alignChips = `
     <div class="field">
       <label>Alignment</label>
@@ -951,23 +1197,63 @@ function slideCardHTML(s, i) {
       </div>
     </div>`;
 
+  const themeDropdown = `
+    <div class="field">
+      <label>Theme</label>
+      <select data-slide-field="themeId">
+        <option value="__default__" ${s.themeId === "__default__" || !s.themeId ? "selected" : ""}>Inherit default (${esc(getTheme("__default__").name)})</option>
+        ${Object.values(state.themes).map(t =>
+          `<option value="${t.id}" ${s.themeId === t.id ? "selected" : ""}>${esc(t.name)}</option>`
+        ).join("")}
+      </select>
+    </div>`;
+
+  const iconBlock = `
+    <div class="field">
+      <label>Icon / decorative image (optional)</label>
+      <input type="file" data-slide-icon accept="image/*">
+      ${s.icon && s.icon.image ? `
+        <div style="margin-top:10px">
+          <div class="field">
+            <label>Position</label>
+            <div class="chip-group">
+              ${["top-left","top-center","top-right","middle-left","center","middle-right","bottom-left","bottom-center","bottom-right"].map(p =>
+                `<span class="chip ${s.icon.position === p ? "active" : ""}" data-icon-chip="${p}">${p.replace("-", " ")}</span>`
+              ).join("")}
+            </div>
+          </div>
+          <div class="field">
+            <label>Size <span class="slider-val">${s.icon.size || 180}px</span></label>
+            <input type="range" data-icon-field="size" min="40" max="500" step="4" value="${s.icon.size || 180}">
+          </div>
+          <div class="field">
+            <label>Offset from edge <span class="slider-val">${s.icon.offset != null ? s.icon.offset : 120}px</span></label>
+            <input type="range" data-icon-field="offset" min="0" max="300" step="4" value="${s.icon.offset != null ? s.icon.offset : 120}">
+          </div>
+          <button class="btn small danger" data-slide-icon-clear>Remove icon</button>
+        </div>
+      ` : ""}
+    </div>`;
+
+  let body = "";
   if (s.type === "cover") {
     body = `
       <div class="field">
         <label>Headline (Inter Black)</label>
-        <textarea data-slide-field="headline" placeholder="Use \\n for line breaks">${esc(s.headline || "")}</textarea>
-        <div class="hint">Line breaks with the Enter key.</div>
+        <textarea data-slide-field="headline">${esc(s.headline || "")}</textarea>
       </div>
       <div class="field">
         <label>Headline size <span class="slider-val">${s.headlineSize || 132}px</span></label>
         <input type="range" data-slide-field="headlineSize" min="40" max="260" step="2" value="${s.headlineSize || 132}">
       </div>
+      ${themeDropdown}
       ${alignChips}
       <div class="field">
         <label>Photo background</label>
         <input type="file" data-slide-photo accept="image/*">
         ${s.photo ? `<div style="margin-top:8px"><button class="btn small danger" data-slide-photo-clear>Remove photo</button></div>` : ""}
       </div>
+      ${iconBlock}
     `;
   } else if (s.type === "cta") {
     body = `
@@ -991,10 +1277,42 @@ function slideCardHTML(s, i) {
         <label>Italic size <span class="slider-val">${s.softSize || 46}px</span></label>
         <input type="range" data-slide-field="softSize" min="20" max="100" step="1" value="${s.softSize || 46}">
       </div>
+      ${themeDropdown}
       ${alignChips}
+      ${iconBlock}
+    `;
+  } else if (s.type === "info") {
+    body = `
+      <div class="field">
+        <label>Title (Inter Black)</label>
+        <textarea data-slide-field="headline">${esc(s.headline || "")}</textarea>
+      </div>
+      <div class="field">
+        <label>Subtitle — optional italic intro (Apple Garamond italic)</label>
+        <textarea data-slide-field="subtitle">${esc(s.subtitle || "")}</textarea>
+      </div>
+      <div class="field">
+        <label>Body — separate paragraphs with a blank line (serif, regular)</label>
+        <textarea data-slide-field="body" style="min-height:120px">${esc(s.body || "")}</textarea>
+        <div class="hint">Leave one empty line between paragraphs.</div>
+      </div>
+      <div class="field">
+        <label>Title size <span class="slider-val">${s.headlineSize || 92}px</span></label>
+        <input type="range" data-slide-field="headlineSize" min="40" max="180" step="2" value="${s.headlineSize || 92}">
+      </div>
+      <div class="field">
+        <label>Subtitle size <span class="slider-val">${s.subtitleSize || 44}px</span></label>
+        <input type="range" data-slide-field="subtitleSize" min="20" max="80" step="1" value="${s.subtitleSize || 44}">
+      </div>
+      <div class="field">
+        <label>Body size <span class="slider-val">${s.bodySize || 38}px</span></label>
+        <input type="range" data-slide-field="bodySize" min="20" max="60" step="1" value="${s.bodySize || 38}">
+      </div>
+      ${themeDropdown}
+      ${alignChips}
+      ${iconBlock}
     `;
   } else {
-    // text
     body = `
       <div class="field">
         <label>Order</label>
@@ -1019,107 +1337,140 @@ function slideCardHTML(s, i) {
         <label>Italic size <span class="slider-val">${s.softSize || 54}px</span></label>
         <input type="range" data-slide-field="softSize" min="20" max="120" step="1" value="${s.softSize || 54}">
       </div>
+      ${themeDropdown}
       ${alignChips}
+      ${iconBlock}
     `;
   }
 
   return `
-    <div class="slide-card open" data-idx="${i}">
-      <div class="slide-card-head">
+    <div class="card" data-idx="${i}">
+      <div class="card-head">
         <div>
           <h3>Slide ${i + 1} · ${typeLabel}</h3>
-          <div class="sub">${esc(preview.substring(0, 48))}${preview.length > 48 ? "…" : ""}</div>
+          <div class="sub">${esc(preview.substring(0, 44))}${preview.length > 44 ? "…" : ""}</div>
         </div>
-        <div class="slide-card-head-actions btn-row">
+        <div class="card-actions">
           <button class="btn small" data-slide-up title="Move up">↑</button>
           <button class="btn small" data-slide-down title="Move down">↓</button>
           <button class="btn small danger" data-slide-delete title="Delete">✕</button>
           <span class="chev">▾</span>
         </div>
       </div>
-      <div class="slide-card-body">${body}</div>
+      <div class="card-body">${body}</div>
     </div>
   `;
 }
 
 /* ============================================================
-   WIRE UP GLOBAL CONTROLS
+   CAROUSEL ACTIONS
    ============================================================ */
-function wireGlobalControls() {
-  function bindColor(colorId, hexId, key) {
-    const colorEl = document.getElementById(colorId);
-    const hexEl = document.getElementById(hexId);
-    colorEl.addEventListener("input", () => {
-      state.global[key] = colorEl.value;
-      hexEl.value = colorEl.value;
-      saveState(); renderPreview();
-    });
-    hexEl.addEventListener("input", () => {
-      const v = sanitizeHex(hexEl.value);
-      if (!v) return;
-      state.global[key] = v;
-      colorEl.value = v;
-      saveState(); renderPreview();
-    });
-  }
-  bindColor("g-bg-color", "g-bg-hex", "bgColor");
-  bindColor("g-ink-color", "g-ink-hex", "inkColor");
-  bindColor("g-dot-color", "g-dot-hex", "dotColor");
-
-  document.getElementById("g-dots-enabled").addEventListener("change", (e) => {
-    state.global.dotsEnabled = e.target.checked;
-    saveState(); renderPreview();
-  });
-
-  function bindRange(id, key, fmt) {
-    const el = document.getElementById(id);
-    const out = document.getElementById(id + "-val");
-    el.addEventListener("input", () => {
-      const v = parseFloat(el.value);
-      state.global[key] = v;
-      out.textContent = fmt(v);
-      saveState(); renderPreview();
-    });
-  }
-  bindRange("g-dot-opacity", "dotOpacity", v => v + "%");
-  bindRange("g-dot-size", "dotSize", v => v + "px");
-  bindRange("g-dot-spacing", "dotSpacing", v => v + "px");
-
-  document.getElementById("g-handle").addEventListener("input", (e) => {
-    state.global.handle = e.target.value;
-    saveState(); renderPreview();
-  });
-}
+document.getElementById("car-picker").addEventListener("change", (e) => {
+  state.currentCarouselId = e.target.value;
+  saveState(); renderAll();
+});
+document.getElementById("car-new").addEventListener("click", async () => {
+  const name = await askName("Name this new carousel", "Untitled carousel");
+  if (!name) return;
+  const id = uid("car");
+  state.carousels[id] = {
+    id, name,
+    slides: [
+      { id: uid("s"), type: "cover", themeId: "__default__", alignment: "left", photo: null, headline: "Hook line\ngoes here.", headlineSize: 132, icon: null },
+    ]
+  };
+  state.currentCarouselId = id;
+  saveState(); renderAll();
+  toast("✓ Carousel created");
+});
+document.getElementById("car-dup").addEventListener("click", () => {
+  const src = currentCarousel();
+  const id = uid("car");
+  state.carousels[id] = { ...structuredClone(src), id, name: src.name + " (copy)" };
+  state.carousels[id].slides.forEach(s => s.id = uid("s"));
+  state.currentCarouselId = id;
+  saveState(); renderAll();
+  toast("✓ Carousel duplicated");
+});
+document.getElementById("car-rename").addEventListener("click", async () => {
+  const car = currentCarousel();
+  const name = await askName("Rename carousel", car.name);
+  if (!name) return;
+  car.name = name;
+  saveState(); renderCarouselPicker(); renderPreview();
+});
+document.getElementById("car-delete").addEventListener("click", async () => {
+  if (Object.keys(state.carousels).length <= 1) { toast("Can't delete last carousel"); return; }
+  const car = currentCarousel();
+  const ok = await askConfirm(`Delete "${car.name}"? This can't be undone.`);
+  if (!ok) return;
+  delete state.carousels[car.id];
+  state.currentCarouselId = Object.keys(state.carousels)[0];
+  saveState(); renderAll();
+});
 
 /* ============================================================
-   ADD / EXPORT / SAVE-LOAD / RESET
+   THEME ACTIONS (new button)
+   ============================================================ */
+document.getElementById("theme-new").addEventListener("click", async () => {
+  const name = await askName("Name this new theme", "Untitled theme");
+  if (!name) return;
+  const id = uid("theme");
+  state.themes[id] = {
+    id, name,
+    bgColor: "#f2ede3", inkColor: "#111111",
+    dotsEnabled: false, dotColor: "#5c4820", dotOpacity: 22, dotSize: 1.6, dotSpacing: 28,
+  };
+  saveState(); renderThemesList(); renderGlobalControls(); renderSlidesList();
+  toast("✓ Theme created");
+});
+
+/* ============================================================
+   GLOBAL (default theme + handle)
+   ============================================================ */
+document.getElementById("g-default-theme").addEventListener("change", (e) => {
+  state.defaultThemeId = e.target.value;
+  saveState(); renderPreview();
+});
+document.getElementById("g-handle").addEventListener("input", (e) => {
+  state.handle = e.target.value;
+  saveState(); renderPreview();
+});
+
+/* ============================================================
+   ADD SLIDE
    ============================================================ */
 function addSlide(type) {
-  const id = "s" + Date.now();
-  const base = { id, type, alignment: "left" };
+  const id = uid("s");
+  const base = { id, type, themeId: "__default__", alignment: "left", icon: null };
   let slide;
-  if (type === "cover") {
-    slide = { ...base, photo: null, headline: "New cover headline", headlineSize: 132 };
-  } else if (type === "cta") {
-    slide = { ...base, alignment: "center", softLead: "Lead line —", headline: "CTA.", softWhy: "Why to stay.", softSize: 46, headlineSize: 280 };
-  } else {
-    slide = { ...base, order: "ba", soft: "Italic line.", headline: "Your headline.", softSize: 54, headlineSize: 108 };
-  }
-  state.slides.push(slide);
-  saveState();
-  renderSlidesList();
-  renderPreview();
+  if (type === "cover") slide = { ...base, photo: null, headline: "New cover headline", headlineSize: 132 };
+  else if (type === "cta") slide = { ...base, alignment: "center", softLead: "Lead line —", headline: "CTA.", softWhy: "Why to stay.", softSize: 46, headlineSize: 280 };
+  else if (type === "info") slide = {
+    ...base,
+    headline: "TOOL NAME",
+    subtitle: "Short italic intro.",
+    body: "First paragraph goes here — explain what it is.\n\nSecond paragraph — explain how you use it.\n\nThird paragraph — a tip, a warning, or a recommendation.",
+    headlineSize: 92, subtitleSize: 44, bodySize: 38,
+  };
+  else slide = { ...base, order: "ba", soft: "Italic line.", headline: "Your headline.", softSize: 54, headlineSize: 108 };
+  currentCarousel().slides.push(slide);
+  saveState(); renderSlidesList(); renderPreview(); renderCarouselPicker();
 }
+document.querySelectorAll("[data-add]").forEach((el) => {
+  el.addEventListener("click", () => addSlide(el.dataset.add));
+});
 
+/* ============================================================
+   EXPORT
+   ============================================================ */
 async function exportSlide(i) {
   const stage = document.getElementById("slide-box-" + i);
-  const inner = stage.querySelector(".slide-inner");
+  const inner = stage?.querySelector(".slide-inner");
   if (!inner) return;
-
   toast("Rendering PNG…");
   await document.fonts.ready;
 
-  // Clone the slide OUTSIDE the transform scale so html2canvas captures at native 1080x1350
   const clone = inner.cloneNode(true);
   clone.style.transform = "none";
   clone.style.position = "fixed";
@@ -1128,18 +1479,12 @@ async function exportSlide(i) {
   clone.style.width = "1080px";
   clone.style.height = "1350px";
   document.body.appendChild(clone);
-
   try {
-    const canvas = await html2canvas(clone, {
-      width: 1080,
-      height: 1350,
-      scale: 1,
-      backgroundColor: null,
-      useCORS: true,
-      logging: false,
-    });
+    const canvas = await html2canvas(clone, { width: 1080, height: 1350, scale: 1, backgroundColor: null, useCORS: true, logging: false });
+    const car = currentCarousel();
+    const safeName = car.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
     const link = document.createElement("a");
-    link.download = `carousel-slide-${String(i + 1).padStart(2, "0")}.png`;
+    link.download = `${safeName}-slide-${String(i + 1).padStart(2, "0")}.png`;
     link.href = canvas.toDataURL("image/png");
     link.click();
     toast("✓ Slide " + (i + 1) + " downloaded");
@@ -1152,28 +1497,31 @@ async function exportSlide(i) {
 }
 
 async function exportAll() {
-  for (let i = 0; i < state.slides.length; i++) {
+  const n = currentCarousel().slides.length;
+  for (let i = 0; i < n; i++) {
     await exportSlide(i);
-    await new Promise(r => setTimeout(r, 350)); // tiny delay so browser doesn't merge downloads
+    await new Promise(r => setTimeout(r, 350));
   }
   toast("✓ All slides downloaded");
 }
+document.getElementById("export-all").addEventListener("click", exportAll);
 
+/* ============================================================
+   SAVE / LOAD / RESET
+   ============================================================ */
 function saveJSON() {
   const data = JSON.stringify(state, null, 2);
   const blob = new Blob([data], { type: "application/json" });
   const link = document.createElement("a");
-  link.download = "carousel-design.json";
+  link.download = "carousel-library.json";
   link.href = URL.createObjectURL(blob);
   link.click();
   URL.revokeObjectURL(link.href);
-  toast("✓ design.json saved");
+  toast("✓ Library saved");
 }
+document.getElementById("save-json").addEventListener("click", saveJSON);
 
-function loadJSONFile() {
-  document.getElementById("load-json-file").click();
-}
-
+document.getElementById("load-json").addEventListener("click", () => document.getElementById("load-json-file").click());
 document.getElementById("load-json-file").addEventListener("change", (e) => {
   const file = e.target.files?.[0];
   if (!file) return;
@@ -1181,46 +1529,35 @@ document.getElementById("load-json-file").addEventListener("change", (e) => {
   reader.onload = () => {
     try {
       const parsed = JSON.parse(reader.result);
-      if (parsed.version !== 1) throw new Error("Unsupported version");
-      state = parsed;
-      saveState();
-      renderGlobalControls();
-      renderSlidesList();
-      renderPreview();
-      toast("✓ Design loaded");
-    } catch (err) {
-      toast("✕ Invalid JSON: " + err.message, 3000);
-    }
+      if (parsed.version === 1) { state = migrateV1(parsed); toast("✓ Imported + migrated from v1"); }
+      else if (parsed.version === 2) { state = parsed; toast("✓ Library imported"); }
+      else throw new Error("Unknown version");
+      saveState(); renderAll();
+    } catch (err) { toast("✕ Invalid JSON: " + err.message, 3000); }
   };
   reader.readAsText(file);
-  e.target.value = ""; // reset so same file can be loaded again
+  e.target.value = "";
 });
 
-function resetAll() {
-  if (!confirm("Reset everything to the default Shift carousel? This wipes your current design.")) return;
-  state = structuredClone(defaultState);
-  saveState();
-  renderGlobalControls();
-  renderSlidesList();
-  renderPreview();
-  toast("✓ Reset");
-}
+document.getElementById("reset").addEventListener("click", async () => {
+  const ok = await askConfirm("Reset everything to defaults? This wipes your entire library of carousels and themes.", "Reset everything");
+  if (!ok) return;
+  state = freshState();
+  saveState(); renderAll();
+  toast("✓ Reset to defaults");
+});
 
 /* ============================================================
-   INIT
+   RENDER ALL + INIT
    ============================================================ */
-document.querySelectorAll("[data-add]").forEach((el) => {
-  el.addEventListener("click", () => addSlide(el.dataset.add));
-});
-document.getElementById("export-all").addEventListener("click", exportAll);
-document.getElementById("save-json").addEventListener("click", saveJSON);
-document.getElementById("load-json").addEventListener("click", loadJSONFile);
-document.getElementById("reset").addEventListener("click", resetAll);
-
-renderGlobalControls();
-wireGlobalControls();
-renderSlidesList();
-renderPreview();
+function renderAll() {
+  renderCarouselPicker();
+  renderGlobalControls();
+  renderThemesList();
+  renderSlidesList();
+  renderPreview();
+}
+renderAll();
 </script>
 </body>
 </html>
