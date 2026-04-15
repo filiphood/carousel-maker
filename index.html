@@ -278,6 +278,19 @@
   .slide-photo.filter-dim { filter: brightness(0.6); }
   .slide-photo.filter-faded { filter: grayscale(0.6) brightness(1.05) contrast(0.95); }
 
+  /* Blurred duplicate of the photo, masked to a region */
+  .slide-photo-blur {
+    position: absolute; inset: 0;
+    background-size: cover;
+    background-position: center;
+    z-index: 0;
+    pointer-events: none;
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+  }
+
   .slide-texture {
     background-repeat: repeat;
     z-index: 1;
@@ -1077,6 +1090,35 @@ function renderSlideInner(s, i) {
   if (hasPhoto) {
     const filter = s.photoFilter && s.photoFilter !== "none" ? ` filter-${s.photoFilter}` : "";
     photoLayers += `<div class="slide-photo${filter}" style="background-image:url('${s.photo}')"></div>`;
+
+    // Blurred duplicate layer (localized via mask)
+    if (s.photoBlur && s.photoBlur !== "none") {
+      const amount = s.photoBlurAmount != null ? s.photoBlurAmount : 20;
+      let mask = "";
+      if (s.photoBlur === "radial") {
+        const fx = s.photoBlurPositionX != null ? s.photoBlurPositionX : 50;
+        const fy = s.photoBlurPositionY != null ? s.photoBlurPositionY : 50;
+        const falloff = s.photoBlurFalloff != null ? s.photoBlurFalloff : 40;
+        const inner = Math.max(2, falloff * 0.25);
+        mask = `radial-gradient(circle at ${fx}% ${fy}%, black 0%, black ${inner}%, transparent ${falloff}%)`;
+      } else if (s.photoBlur === "band") {
+        const angle = s.photoBlurAngle != null ? s.photoBlurAngle : 0;
+        const half = Math.min(48, (s.photoBlurFalloff != null ? s.photoBlurFalloff : 40) / 2);
+        const soft = Math.min(half * 0.6, 18);
+        mask = `linear-gradient(${angle}deg, transparent 0%, transparent ${50 - half}%, black ${50 - half + soft}%, black ${50 + half - soft}%, transparent ${50 + half}%, transparent 100%)`;
+      }
+      // Build a merged CSS filter string so photoFilter (grayscale/etc.) composes with blur
+      const baseFilters = {
+        grayscale: "grayscale(1) contrast(1.02)",
+        sepia: "sepia(0.7) saturate(1.1)",
+        dim: "brightness(0.6)",
+        faded: "grayscale(0.6) brightness(1.05) contrast(0.95)",
+      };
+      const preFilter = baseFilters[s.photoFilter] || "";
+      const fullFilter = (preFilter + " blur(" + amount + "px)").trim();
+      photoLayers += `<div class="slide-photo-blur" style="background-image:url('${s.photo}');filter:${fullFilter};-webkit-mask-image:${mask};mask-image:${mask}"></div>`;
+    }
+
     if (s.photoTexture && s.photoTexture !== "none") {
       const tex = textureDataURL(s.photoTexture);
       if (tex) {
@@ -1502,7 +1544,7 @@ function renderSlidesList() {
       saveState();
 
       // Re-render slide card when a conditional-UI field changes
-      if (field === "photoTexture") {
+      if (field === "photoTexture" || field === "photoBlur") {
         renderSlidesList(); renderPreview();
         const c = document.querySelector(`.card[data-idx="${idx}"]`);
         if (c) c.classList.add("open");
@@ -1713,6 +1755,35 @@ function slideCardHTML(s, i) {
             <label>Dim (dark overlay for legibility) <span class="slider-val">${s.photoDim || 0}%</span></label>
             <input type="range" data-slide-field="photoDim" data-unit="%" min="0" max="80" step="2" value="${s.photoDim || 0}">
           </div>
+          <div class="field">
+            <label>Blur region</label>
+            <select data-slide-field="photoBlur">
+              ${[["none","None"],["radial","Radial hotspot"],["band","Linear band"]].map(([v,l])=>`<option value="${v}" ${s.photoBlur===v?"selected":""}>${esc(l)}</option>`).join("")}
+            </select>
+          </div>
+          ${s.photoBlur && s.photoBlur !== "none" ? `
+            <div class="field">
+              <label>Blur amount <span class="slider-val">${s.photoBlurAmount != null ? s.photoBlurAmount : 20}px</span></label>
+              <input type="range" data-slide-field="photoBlurAmount" data-unit="px" min="2" max="50" step="1" value="${s.photoBlurAmount != null ? s.photoBlurAmount : 20}">
+            </div>
+            <div class="field">
+              <label>Blur position X <span class="slider-val">${s.photoBlurPositionX != null ? s.photoBlurPositionX : 50}%</span></label>
+              <input type="range" data-slide-field="photoBlurPositionX" data-unit="%" min="0" max="100" step="1" value="${s.photoBlurPositionX != null ? s.photoBlurPositionX : 50}">
+            </div>
+            <div class="field">
+              <label>Blur position Y <span class="slider-val">${s.photoBlurPositionY != null ? s.photoBlurPositionY : 50}%</span></label>
+              <input type="range" data-slide-field="photoBlurPositionY" data-unit="%" min="0" max="100" step="1" value="${s.photoBlurPositionY != null ? s.photoBlurPositionY : 50}">
+            </div>
+            <div class="field">
+              <label>${s.photoBlur === "radial" ? "Hotspot size" : "Band width"} <span class="slider-val">${s.photoBlurFalloff != null ? s.photoBlurFalloff : 40}%</span></label>
+              <input type="range" data-slide-field="photoBlurFalloff" data-unit="%" min="10" max="200" step="2" value="${s.photoBlurFalloff != null ? s.photoBlurFalloff : 40}">
+            </div>
+            ${s.photoBlur === "band" ? `
+              <div class="field">
+                <label>Band angle <span class="slider-val">${s.photoBlurAngle != null ? s.photoBlurAngle : 0}°</span></label>
+                <input type="range" data-slide-field="photoBlurAngle" data-unit="°" min="0" max="180" step="1" value="${s.photoBlurAngle != null ? s.photoBlurAngle : 0}">
+              </div>` : ""}
+          ` : ""}
           <button class="btn small danger" data-slide-photo-clear>Remove photo</button>
         </div>
       ` : ""}
