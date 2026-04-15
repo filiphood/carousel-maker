@@ -209,6 +209,24 @@
     background-size: var(--pattern-size);
     background-position: var(--pattern-position);
   }
+  /* Accent layer (::before) — masked radial hotspot or band */
+  .slide-inner.has-accent::before {
+    content: "";
+    position: absolute; inset: 0;
+    background-image: var(--accent-image);
+    background-size: var(--accent-size);
+    background-position: var(--accent-position);
+    -webkit-mask-image: var(--accent-mask);
+    mask-image: var(--accent-mask);
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    pointer-events: none;
+    z-index: 0;
+  }
+  /* Slide content (headline, soft, body, footer, mark) sits above the accent layer */
+  .slide-inner.has-accent > * { position: relative; z-index: 1; }
 
   .slide-inner.align-left { text-align: left; align-items: flex-start; }
   .slide-inner.align-center { text-align: center; align-items: center; }
@@ -544,6 +562,20 @@ function seedThemes() {
       patternType: "dots-accent-bright", dotColor: "#5c4820",
       ...base, dotOpacity: 12, dotSize: 1.6, dotSpacing: 28, accentMultiplier: 3, accentScale: 3,
     },
+    "cream-hotspot": {
+      id: "cream-hotspot", name: "Cream + Radial hotspot",
+      bgColor: "#f2ede3", inkColor: "#111111",
+      patternType: "dots-accent-bright", dotColor: "#5c4820",
+      ...base, dotOpacity: 14, dotSize: 1.6, dotSpacing: 28, accentScale: 3,
+      accentDistribution: "radial", accentPositionX: 50, accentPositionY: 50, accentFalloff: 65,
+    },
+    "cream-band": {
+      id: "cream-band", name: "Cream + Linear band",
+      bgColor: "#f2ede3", inkColor: "#111111",
+      patternType: "dots-accent-bright", dotColor: "#5c4820",
+      ...base, dotOpacity: 14, dotSize: 1.6, dotSpacing: 28, accentScale: 3,
+      accentDistribution: "band", accentPositionX: 50, accentPositionY: 50, accentFalloff: 50, accentAngle: 110,
+    },
     "cream-grid": {
       id: "cream-grid", name: "Cream + Grid",
       bgColor: "#f2ede3", inkColor: "#111111",
@@ -573,18 +605,22 @@ function seedThemes() {
 
 function normalizeTheme(t) {
   if (!t) return t;
+  const defaults = {
+    accentMultiplier: 3, accentScale: 2.6, gridLineWidth: 1,
+    accentDistribution: "even",   // even | radial | band
+    accentPositionX: 50,          // 0-100, % across slide (center of hotspot/band)
+    accentPositionY: 50,          // 0-100, % down slide
+    accentFalloff: 60,            // 10-200 — hotspot radius or band width
+    accentAngle: 0,               // 0-180, band direction (0 = horizontal, 90 = vertical)
+  };
   if (t.patternType) {
-    // Fill in missing fields
-    return {
-      accentMultiplier: 3, accentScale: 2.6, gridLineWidth: 1,
-      ...t,
-    };
+    return { ...defaults, ...t };
   }
   // Migrate from v2.0 (dotsEnabled) to v2.1 (patternType)
   return {
+    ...defaults,
     ...t,
     patternType: t.dotsEnabled ? "dots" : "none",
-    accentMultiplier: 3, accentScale: 2.6, gridLineWidth: 1,
   };
 }
 
@@ -756,7 +792,7 @@ function getTheme(themeId) {
 }
 function firstTheme() { return normalizeTheme(Object.values(state.themes)[0]); }
 
-// Returns { image, size, position } CSS strings, or null for "none"
+// Returns { baseImage, baseSize, basePosition, accentImage?, accentSize?, accentPosition?, accentMask? }
 function patternCSS(theme) {
   const type = theme.patternType || "none";
   if (type === "none") return null;
@@ -766,57 +802,94 @@ function patternCSS(theme) {
   const ds = theme.dotSize || 1.6;
   const mult = Math.max(2, Math.min(6, theme.accentMultiplier || 3));
   const scale = Math.max(1, theme.accentScale || 2.6);
+  const basePos = `${sp / 2}px ${sp / 2}px`;
 
+  const baseDots = `radial-gradient(circle, ${color} ${ds}px, transparent ${ds}px)`;
+  const baseDotsSize = `${sp}px ${sp}px`;
+
+  // Simple single-layer patterns first
   if (type === "dots") {
-    return {
-      image: `radial-gradient(circle, ${color} ${ds}px, transparent ${ds}px)`,
-      size: `${sp}px ${sp}px`,
-      position: `${sp / 2}px ${sp / 2}px`,
-    };
+    return { baseImage: baseDots, baseSize: baseDotsSize, basePosition: basePos };
   }
-
-  if (type === "dots-accent-size") {
-    // small dots everywhere + larger dots on every mult-th cell
-    const accentSize = ds * scale;
-    return {
-      image: [
-        `radial-gradient(circle, ${color} ${ds}px, transparent ${ds}px)`,
-        `radial-gradient(circle, ${color} ${accentSize}px, transparent ${accentSize}px)`,
-      ].join(", "),
-      size: `${sp}px ${sp}px, ${sp * mult}px ${sp * mult}px`,
-      position: `${sp / 2}px ${sp / 2}px, ${sp / 2}px ${sp / 2}px`,
-    };
-  }
-
-  if (type === "dots-accent-bright") {
-    // faint dots everywhere + brighter dots on every mult-th cell
-    const faintAlpha = Math.max(0.02, (theme.dotOpacity / 100) * 0.4);
-    const brightAlpha = Math.min(1, (theme.dotOpacity / 100) * scale);
-    const faint = hexToRgba(theme.dotColor, faintAlpha);
-    const bright = hexToRgba(theme.dotColor, brightAlpha);
-    return {
-      image: [
-        `radial-gradient(circle, ${faint} ${ds}px, transparent ${ds}px)`,
-        `radial-gradient(circle, ${bright} ${ds * 1.1}px, transparent ${ds * 1.1}px)`,
-      ].join(", "),
-      size: `${sp}px ${sp}px, ${sp * mult}px ${sp * mult}px`,
-      position: `${sp / 2}px ${sp / 2}px, ${sp / 2}px ${sp / 2}px`,
-    };
-  }
-
   if (type === "grid") {
     const lw = theme.gridLineWidth || 1;
     return {
-      image: [
+      baseImage: [
         `linear-gradient(to right, ${color} ${lw}px, transparent ${lw}px)`,
         `linear-gradient(to bottom, ${color} ${lw}px, transparent ${lw}px)`,
       ].join(", "),
-      size: `${sp}px ${sp}px, ${sp}px ${sp}px`,
-      position: `0 0, 0 0`,
+      baseSize: `${sp}px ${sp}px, ${sp}px ${sp}px`,
+      basePosition: `0 0, 0 0`,
     };
   }
 
-  return null;
+  // Dots with accent — multiple distribution modes
+  if (type !== "dots-accent-size" && type !== "dots-accent-bright") return null;
+
+  const dist = theme.accentDistribution || "even";
+
+  // Accent dot appearance
+  let accentDot;
+  if (type === "dots-accent-size") {
+    const accentSize = ds * scale;
+    accentDot = `radial-gradient(circle, ${color} ${accentSize}px, transparent ${accentSize}px)`;
+  } else {
+    const brightAlpha = Math.min(1, (theme.dotOpacity / 100) * scale);
+    const bright = hexToRgba(theme.dotColor, brightAlpha);
+    accentDot = `radial-gradient(circle, ${bright} ${ds * 1.1}px, transparent ${ds * 1.1}px)`;
+  }
+
+  // For "even" distribution: also fade the base dots since accent doubles up on every Nth cell
+  // Keep faint base for dots-accent-bright
+  let baseForAccent = baseDots;
+  if (type === "dots-accent-bright") {
+    const faintAlpha = Math.max(0.02, (theme.dotOpacity / 100) * 0.4);
+    const faint = hexToRgba(theme.dotColor, faintAlpha);
+    baseForAccent = `radial-gradient(circle, ${faint} ${ds}px, transparent ${ds}px)`;
+  }
+
+  if (dist === "even") {
+    // Current 2-layer approach on base: small everywhere, big on every Nth cell
+    return {
+      baseImage: [accentDot, baseForAccent].join(", "),
+      baseSize: `${sp * mult}px ${sp * mult}px, ${sp}px ${sp}px`,
+      basePosition: `${basePos}, ${basePos}`,
+    };
+  }
+
+  // Radial / band — base dots on main bg, accent layer on ::before with mask
+  const result = {
+    baseImage: baseForAccent,
+    baseSize: baseDotsSize,
+    basePosition: basePos,
+    accentImage: accentDot,
+    accentSize: baseDotsSize,       // SAME spacing as base so dots align
+    accentPosition: basePos,
+  };
+
+  const falloff = Math.max(10, Math.min(200, theme.accentFalloff || 60));
+  const px = Math.max(0, Math.min(100, theme.accentPositionX));
+  const py = Math.max(0, Math.min(100, theme.accentPositionY));
+
+  if (dist === "radial") {
+    // circular hotspot that fades out
+    const inner = Math.max(2, falloff * 0.2);
+    result.accentMask = `radial-gradient(circle at ${px}% ${py}%, black 0%, black ${inner}%, transparent ${falloff}%)`;
+  } else if (dist === "band") {
+    // band across the slide at accentAngle
+    const angle = Math.max(0, Math.min(180, theme.accentAngle || 0));
+    const h = Math.min(48, falloff / 2); // half band width in %
+    const s = Math.min(h * 0.6, 18);     // softness
+    result.accentMask = `linear-gradient(${angle}deg,
+      transparent 0%,
+      transparent ${50 - h}%,
+      black ${50 - h + s}%,
+      black ${50 + h - s}%,
+      transparent ${50 + h}%,
+      transparent 100%)`;
+  }
+
+  return result;
 }
 
 /* ============================================================
@@ -863,14 +936,21 @@ function renderSlideInner(s, i) {
     `--footer-color:${hexToRgba(theme.inkColor, 0.5)}`,
   ];
   if (pattern) {
-    styleParts.push(`--pattern-image:${pattern.image}`);
-    styleParts.push(`--pattern-size:${pattern.size}`);
-    styleParts.push(`--pattern-position:${pattern.position}`);
+    styleParts.push(`--pattern-image:${pattern.baseImage}`);
+    styleParts.push(`--pattern-size:${pattern.baseSize}`);
+    styleParts.push(`--pattern-position:${pattern.basePosition}`);
+    if (pattern.accentImage) {
+      styleParts.push(`--accent-image:${pattern.accentImage}`);
+      styleParts.push(`--accent-size:${pattern.accentSize}`);
+      styleParts.push(`--accent-position:${pattern.accentPosition}`);
+      styleParts.push(`--accent-mask:${pattern.accentMask || 'linear-gradient(black, black)'}`);
+    }
   }
   const styleVars = styleParts.join(";");
 
   const classList = ["slide-inner"];
   if (pattern) classList.push("has-pattern");
+  if (pattern && pattern.accentImage) classList.push("has-accent");
   classList.push(s.type);
   if (s.type === "text") classList.push("order-" + (s.order || "ba"));
   classList.push("align-" + (s.alignment || "left"));
@@ -1038,6 +1118,21 @@ function renderThemesList() {
     });
   });
 
+  // Chip selector for theme fields (e.g. accentDistribution)
+  root.querySelectorAll("[data-theme-field-chip]").forEach((el) => {
+    el.addEventListener("click", () => {
+      const card = el.closest(".card");
+      const id = card.dataset.themeId;
+      const field = el.dataset.themeFieldChip;
+      state.themes[id][field] = el.dataset.themeChip;
+      saveState();
+      renderThemesList();
+      renderPreview();
+      const c = document.querySelector(`[data-theme-id="${id}"]`);
+      if (c) c.classList.add("open");
+    });
+  });
+
   root.querySelectorAll("[data-theme-hex]").forEach((el) => {
     el.addEventListener("input", () => {
       const card = el.closest(".card");
@@ -1146,19 +1241,55 @@ function themeCardHTML(t) {
       <label>${isGrid ? "Cell size" : "Dot spacing"} <span class="slider-val">${t.dotSpacing}px</span></label>
       <input type="range" data-theme-field="dotSpacing" data-unit="px" min="12" max="80" step="1" value="${t.dotSpacing}">
     </div>`;
-  const accentMult = isAccentVariant ? `
-    <div class="field">
-      <label>Accent every Nth cell <span class="slider-val">${t.accentMultiplier}×</span></label>
-      <input type="range" data-theme-field="accentMultiplier" data-unit="×" min="2" max="6" step="1" value="${t.accentMultiplier}">
-    </div>` : "";
   const accentScale = isAccentVariant ? `
     <div class="field">
       <label>Accent ${t.patternType === "dots-accent-size" ? "size" : "brightness"} boost <span class="slider-val">${t.accentScale}×</span></label>
       <input type="range" data-theme-field="accentScale" data-unit="×" min="1.2" max="5" step="0.1" value="${t.accentScale}">
     </div>` : "";
 
+  const distribution = t.accentDistribution || "even";
+  const accentDistribution = isAccentVariant ? `
+    <div class="field">
+      <label>Accent distribution</label>
+      <div class="chip-group">
+        ${[
+          ["even", "Even (every Nth)"],
+          ["radial", "Radial hotspot"],
+          ["band", "Linear band"],
+        ].map(([v, label]) =>
+          `<span class="chip ${distribution === v ? "active" : ""}" data-theme-field-chip="accentDistribution" data-theme-chip="${v}">${esc(label)}</span>`
+        ).join("")}
+      </div>
+    </div>` : "";
+
+  const accentMult = isAccentVariant && distribution === "even" ? `
+    <div class="field">
+      <label>Accent every Nth cell <span class="slider-val">${t.accentMultiplier}×</span></label>
+      <input type="range" data-theme-field="accentMultiplier" data-unit="×" min="2" max="6" step="1" value="${t.accentMultiplier}">
+    </div>` : "";
+
+  const hotspotFields = isAccentVariant && (distribution === "radial" || distribution === "band") ? `
+    <div class="field">
+      <label>Position X <span class="slider-val">${t.accentPositionX}%</span></label>
+      <input type="range" data-theme-field="accentPositionX" data-unit="%" min="0" max="100" step="1" value="${t.accentPositionX}">
+    </div>
+    <div class="field">
+      <label>Position Y <span class="slider-val">${t.accentPositionY}%</span></label>
+      <input type="range" data-theme-field="accentPositionY" data-unit="%" min="0" max="100" step="1" value="${t.accentPositionY}">
+    </div>
+    <div class="field">
+      <label>${distribution === "radial" ? "Hotspot size" : "Band width"} <span class="slider-val">${t.accentFalloff}%</span></label>
+      <input type="range" data-theme-field="accentFalloff" data-unit="%" min="10" max="200" step="2" value="${t.accentFalloff}">
+    </div>
+    ${distribution === "band" ? `
+      <div class="field">
+        <label>Band angle <span class="slider-val">${t.accentAngle}°</span></label>
+        <input type="range" data-theme-field="accentAngle" data-unit="°" min="0" max="180" step="1" value="${t.accentAngle}">
+      </div>` : ""}
+  ` : "";
+
   const patternBlock = showPatternFields
-    ? dotColor + opacity + size + gridWidth + spacing + accentMult + accentScale
+    ? dotColor + opacity + size + gridWidth + spacing + accentScale + accentDistribution + accentMult + hotspotFields
     : "";
 
   return `
