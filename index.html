@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Carousel Maker · Filip</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&display=swap" rel="stylesheet">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<style>
+  /* —————————————————————— shell —————————————————————— */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --panel-bg: #161616;
+    --panel-2: #1f1f1f;
+    --panel-3: #262626;
+    --panel-line: #2c2c2c;
+    --accent: #f4d784;
+    --ink: #e9e9e9;
+    --ink-soft: #9a9a9a;
+    --ink-dim: #6c6c6c;
+    --danger: #e26c6c;
+  }
+
+  html, body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background: var(--panel-bg);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .app {
+    display: grid;
+    grid-template-columns: 420px 1fr;
+    height: 100vh;
+  }
+
+  /* —————————————————————— controls panel —————————————————————— */
+  .controls {
+    overflow-y: auto;
+    background: var(--panel-bg);
+    border-right: 1px solid var(--panel-line);
+  }
+  .controls::-webkit-scrollbar { width: 10px; }
+  .controls::-webkit-scrollbar-thumb { background: #333; border-radius: 5px; }
+
+  .app-header {
+    padding: 24px 24px 16px;
+    border-bottom: 1px solid var(--panel-line);
+    position: sticky;
+    top: 0;
+    background: var(--panel-bg);
+    z-index: 10;
+  }
+  .app-header h1 {
+    font-size: 15px;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .app-header p {
+    font-size: 11px;
+    color: var(--ink-dim);
+    margin-top: 4px;
+    letter-spacing: 0.02em;
+  }
+
+  .section {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--panel-line);
+  }
+  .section-title {
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .section-title .dim { font-weight: 400; color: var(--ink-dim); letter-spacing: 0.02em; text-transform: none; font-size: 11px; }
+
+  /* Form field styles */
+  .field { margin-bottom: 12px; }
+  .field:last-child { margin-bottom: 0; }
+  .field label {
+    display: block;
+    font-size: 11px;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+    letter-spacing: 0.02em;
+  }
+  .field-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .field-row > * { flex: 1; }
+  .field-row .shrink { flex: 0 0 auto; }
+
+  input[type="text"], input[type="number"], textarea, select {
+    width: 100%;
+    background: var(--panel-2);
+    border: 1px solid var(--panel-line);
+    color: var(--ink);
+    padding: 8px 10px;
+    font-size: 13px;
+    font-family: inherit;
+    border-radius: 6px;
+    outline: none;
+    transition: border-color .12s;
+  }
+  input[type="text"]:focus, input[type="number"]:focus, textarea:focus, select:focus {
+    border-color: var(--accent);
+  }
+  textarea {
+    min-height: 60px;
+    resize: vertical;
+    line-height: 1.4;
+  }
+  input[type="range"] {
+    width: 100%;
+    accent-color: var(--accent);
+  }
+  input[type="color"] {
+    width: 42px;
+    height: 32px;
+    border: 1px solid var(--panel-line);
+    border-radius: 6px;
+    background: var(--panel-2);
+    cursor: pointer;
+    padding: 2px;
+  }
+  input[type="checkbox"] {
+    accent-color: var(--accent);
+    width: 16px;
+    height: 16px;
+  }
+  input[type="file"] {
+    width: 100%;
+    font-size: 12px;
+    color: var(--ink-soft);
+  }
+  input[type="file"]::file-selector-button {
+    background: var(--panel-3);
+    border: 1px solid var(--panel-line);
+    color: var(--ink);
+    padding: 6px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 12px;
+    margin-right: 8px;
+  }
+
+  .btn {
+    background: var(--panel-3);
+    border: 1px solid var(--panel-line);
+    color: var(--ink);
+    padding: 8px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    transition: background .12s, border-color .12s;
+  }
+  .btn:hover { background: #303030; border-color: #3a3a3a; }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #1a1a1a; }
+  .btn.primary:hover { background: #f0c968; border-color: #f0c968; }
+  .btn.danger { color: var(--danger); }
+  .btn.danger:hover { background: #3a1f1f; border-color: #5a2828; }
+  .btn.small { padding: 4px 8px; font-size: 11px; }
+  .btn.full { width: 100%; }
+
+  .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .slide-card {
+    background: var(--panel-2);
+    border: 1px solid var(--panel-line);
+    border-radius: 8px;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .slide-card-head {
+    padding: 10px 12px;
+    background: var(--panel-3);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+  }
+  .slide-card-head h3 {
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 0.05em;
+  }
+  .slide-card-head .sub {
+    font-size: 10px;
+    color: var(--ink-dim);
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    margin-top: 2px;
+  }
+  .slide-card-body {
+    padding: 14px 12px;
+    display: none;
+  }
+  .slide-card.open .slide-card-body { display: block; }
+  .slide-card.open .chev { transform: rotate(180deg); }
+  .chev { font-size: 10px; color: var(--ink-dim); transition: transform .12s; }
+
+  .slider-val {
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-soft);
+    font-size: 11px;
+    min-width: 34px;
+    text-align: right;
+  }
+
+  .chip-group {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+  .chip {
+    background: var(--panel-3);
+    border: 1px solid var(--panel-line);
+    color: var(--ink-soft);
+    padding: 5px 9px;
+    border-radius: 5px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all .12s;
+  }
+  .chip:hover { color: var(--ink); border-color: #3a3a3a; }
+  .chip.active { background: var(--accent); color: #1a1a1a; border-color: var(--accent); font-weight: 600; }
+
+  /* —————————————————————— preview panel —————————————————————— */
+  .preview {
+    overflow-y: auto;
+    background: #0f0f0f;
+    padding: 48px 24px 96px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 48px;
+  }
+  .preview::-webkit-scrollbar { width: 10px; }
+  .preview::-webkit-scrollbar-thumb { background: #333; border-radius: 5px; }
+
+  .preview-note {
+    color: var(--ink-dim);
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    text-align: center;
+    max-width: 600px;
+    line-height: 1.6;
+  }
+
+  /* Each slide wrapper */
+  .slide-stage {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  .slide-stage-meta {
+    font-size: 11px;
+    color: var(--ink-dim);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+  .slide-stage-meta .dl {
+    color: var(--accent);
+    cursor: pointer;
+    user-select: none;
+    letter-spacing: 0.05em;
+    text-transform: none;
+    font-weight: 600;
+  }
+  .slide-stage-meta .dl:hover { text-decoration: underline; }
+
+  /* The actual slide — 1080x1350 scaled to fit */
+  .slide-box {
+    width: 540px;  /* half of 1080 */
+    height: 675px; /* half of 1350 */
+    position: relative;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    overflow: hidden;
+  }
+  .slide-box > .slide-inner {
+    /* internally rendered at 1080x1350 then scaled to fit 540x675 */
+    width: 1080px;
+    height: 1350px;
+    transform: scale(0.5);
+    transform-origin: top left;
+    position: absolute;
+    top: 0; left: 0;
+  }
+
+  /* Slide content styles (mirrors ig-carousel-shift.html) */
+  .slide-inner {
+    font-family: 'Inter', sans-serif;
+    color: var(--ink-slide, #111);
+    background-color: var(--bg-slide, #f2ede3);
+    position: relative;
+    padding: 140px 120px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .slide-inner.dots {
+    background-image: radial-gradient(circle, var(--dot-color, rgba(92, 72, 30, 0.22)) var(--dot-size, 1.6px), transparent var(--dot-size, 1.6px));
+    background-size: var(--dot-spacing, 28px) var(--dot-spacing, 28px);
+    background-position: 14px 14px;
+  }
+
+  .slide-inner.align-left { text-align: left; align-items: flex-start; }
+  .slide-inner.align-center { text-align: center; align-items: center; }
+  .slide-inner.align-right { text-align: right; align-items: flex-end; }
+
+  .slide-headline {
+    font-family: 'Inter', sans-serif;
+    font-weight: 900;
+    line-height: 0.98;
+    letter-spacing: -0.045em;
+    color: inherit;
+    white-space: pre-wrap;
+  }
+  .slide-soft {
+    font-family: 'Apple Garamond', 'ITC Garamond Std', 'Garamond', 'Hoefler Text', 'Times New Roman', serif;
+    font-style: italic;
+    line-height: 1.18;
+    letter-spacing: -0.005em;
+    color: inherit;
+    white-space: pre-wrap;
+  }
+
+  .slide-inner.cta .slide-headline { line-height: 0.9; letter-spacing: -0.06em; }
+  .slide-inner.cta .slide-soft.lead { margin-bottom: 56px; }
+  .slide-inner.cta .slide-soft.why { margin-top: 56px; }
+
+  .slide-inner.order-ab .slide-soft { margin-bottom: 40px; }
+  .slide-inner.order-ba .slide-soft { margin-top: 40px; }
+
+  /* cover = photo background */
+  .slide-inner.cover {
+    padding: 0;
+    background-color: #1a1a1a;
+    background-image:
+      linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.0) 35%, rgba(0,0,0,0.0) 55%, rgba(0,0,0,0.85) 100%),
+      var(--bg-photo, radial-gradient(120% 80% at 50% 40%, #4a463f 0%, #2b2823 45%, #0e0d0b 100%));
+    background-size: cover, cover;
+    background-position: center, center;
+  }
+  .slide-inner.cover .cover-copy {
+    position: absolute;
+    left: 120px;
+    right: 120px;
+    bottom: 180px;
+  }
+  .slide-inner.cover .slide-headline { color: #f6f3ec; }
+  .slide-inner.cover .slide-soft { color: #f6f3ec; }
+
+  /* Slide footer */
+  .slide-footer {
+    position: absolute;
+    left: 120px;
+    right: 120px;
+    bottom: 80px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'Inter', sans-serif;
+    font-weight: 900;
+    font-size: 18px;
+    letter-spacing: 0.18em;
+    color: var(--footer-color, #6b6b6b);
+    text-transform: uppercase;
+  }
+  .slide-inner.cover .slide-footer { color: rgba(246,243,236,0.7); }
+  .slide-mark {
+    position: absolute;
+    top: 80px;
+    left: 120px;
+    width: 28px;
+    height: 28px;
+    border: 3px solid currentColor;
+    border-radius: 50%;
+    color: var(--ink-slide, #111);
+  }
+  .slide-inner.cover .slide-mark { color: #f6f3ec; }
+
+  /* Tooltip for keyboard shortcuts etc. (small) */
+  .hint {
+    font-size: 10px;
+    color: var(--ink-dim);
+    margin-top: 4px;
+    font-style: italic;
+  }
+
+  /* Add slide button */
+  .add-slide {
+    margin-top: 8px;
+  }
+
+  /* Sticky action bar at bottom of controls */
+  .action-bar {
+    position: sticky;
+    bottom: 0;
+    background: var(--panel-bg);
+    border-top: 1px solid var(--panel-line);
+    padding: 14px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 10;
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1d1d1d;
+    border: 1px solid var(--panel-line);
+    color: var(--ink);
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    z-index: 100;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s, transform .2s;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(-6px); }
+
+</style>
+</head>
+
+<body>
+
+<main class="app">
+
+  <!-- ————————————————— controls ————————————————— -->
+  <aside class="controls">
+    <header class="app-header">
+      <h1>Carousel Maker</h1>
+      <p>Instagram 1080 × 1350 · auto-saves locally</p>
+    </header>
+
+    <!-- Global -->
+    <div class="section" id="global-section">
+      <div class="section-title">Global <span class="dim">applied to every slide</span></div>
+
+      <div class="field">
+        <label>Background (cream slides)</label>
+        <div class="field-row">
+          <input type="color" id="g-bg-color">
+          <input type="text" id="g-bg-hex" placeholder="#f2ede3" maxlength="9">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Text color</label>
+        <div class="field-row">
+          <input type="color" id="g-ink-color">
+          <input type="text" id="g-ink-hex" placeholder="#111111" maxlength="9">
+        </div>
+      </div>
+
+      <div class="field">
+        <label><input type="checkbox" id="g-dots-enabled"> Bullet-journal dot grid</label>
+      </div>
+
+      <div class="field">
+        <label>Dot color</label>
+        <div class="field-row">
+          <input type="color" id="g-dot-color">
+          <input type="text" id="g-dot-hex" placeholder="#5a4820" maxlength="9">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Dot opacity <span class="slider-val" id="g-dot-opacity-val">22%</span></label>
+        <input type="range" id="g-dot-opacity" min="0" max="100" value="22">
+      </div>
+
+      <div class="field">
+        <label>Dot size <span class="slider-val" id="g-dot-size-val">1.6px</span></label>
+        <input type="range" id="g-dot-size" min="0.5" max="4" step="0.1" value="1.6">
+      </div>
+
+      <div class="field">
+        <label>Dot spacing <span class="slider-val" id="g-dot-spacing-val">28px</span></label>
+        <input type="range" id="g-dot-spacing" min="12" max="60" step="1" value="28">
+      </div>
+
+      <div class="field">
+        <label>Handle (footer left)</label>
+        <input type="text" id="g-handle" placeholder="@yourhandle">
+      </div>
+    </div>
+
+    <!-- Slides section (dynamically populated) -->
+    <div class="section" id="slides-section">
+      <div class="section-title">Slides <span class="dim" id="slides-count">0 slides</span></div>
+      <div id="slides-list"></div>
+      <div class="btn-row add-slide">
+        <button class="btn small" data-add="cover">+ Cover (photo)</button>
+        <button class="btn small" data-add="text">+ Text</button>
+        <button class="btn small" data-add="cta">+ CTA (3-line)</button>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="action-bar">
+      <div class="btn-row">
+        <button class="btn primary" id="export-all" style="flex:1">⇣ Download all PNGs</button>
+      </div>
+      <div class="btn-row">
+        <button class="btn small" id="save-json" style="flex:1">Export design.json</button>
+        <button class="btn small" id="load-json" style="flex:1">Import design.json</button>
+        <button class="btn small danger" id="reset" title="Reset to default">↺</button>
+      </div>
+      <input type="file" id="load-json-file" accept="application/json" style="display:none">
+    </div>
+  </aside>
+
+  <!-- ————————————————— preview ————————————————— -->
+  <section class="preview" id="preview">
+    <p class="preview-note">
+      Preview at 50% · each slide exports at full 1080 × 1350.
+      Swipe arrow / corner mark only shown in preview; they stay in the PNG too.
+    </p>
+    <div id="slides-preview"></div>
+  </section>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   DEFAULT STATE — seed with "The Shift" so first open is useful
+   ============================================================ */
+const defaultState = {
+  version: 1,
+  global: {
+    bgColor: "#f2ede3",
+    inkColor: "#111111",
+    dotsEnabled: true,
+    dotColor: "#5c4820",
+    dotOpacity: 22,
+    dotSize: 1.6,
+    dotSpacing: 28,
+    handle: "@filiphood",
+  },
+  slides: [
+    {
+      id: "s1",
+      type: "cover",
+      photo: null, // data URL
+      headline: "This has become\ntoo heavy.",
+      headlineSize: 132,
+      alignment: "left",
+    },
+    {
+      id: "s2",
+      type: "text",
+      order: "ab", // soft ABOVE headline
+      alignment: "left",
+      soft: "I used to wake up at 4am for sunrises —",
+      headline: "and drag this bag\nacross six continents.",
+      softSize: 54,
+      headlineSize: 108,
+    },
+    {
+      id: "s3",
+      type: "text",
+      order: "ba",
+      alignment: "left",
+      headline: "But every time\nI came home —",
+      soft: "someone had shot it\nbetter. Faster. Luckier.",
+      softSize: 54,
+      headlineSize: 128,
+    },
+    {
+      id: "s4",
+      type: "text",
+      order: "ab",
+      alignment: "left",
+      soft: "And somewhere along the way,\nI realised —",
+      headline: "I loved taking photos.\nI just didn't want it\nas a career.",
+      softSize: 54,
+      headlineSize: 92,
+    },
+    {
+      id: "s5",
+      type: "text",
+      order: "ab",
+      alignment: "left",
+      soft: "Then the world locked down.",
+      headline: "No sunrises.\nNo flights.\nNo gear.",
+      softSize: 54,
+      headlineSize: 140,
+    },
+    {
+      id: "s6",
+      type: "text",
+      order: "ba",
+      alignment: "left",
+      headline: "Stuck inside,\nI found coding.",
+      soft: "Not to escape —\nto make something.",
+      softSize: 54,
+      headlineSize: 128,
+    },
+    {
+      id: "s7",
+      type: "text",
+      order: "ab",
+      alignment: "left",
+      soft: "And suddenly I was fifteen again —",
+      headline: "the kid building websites\nin his room\nafter school.",
+      softSize: 54,
+      headlineSize: 100,
+    },
+    {
+      id: "s8",
+      type: "cta",
+      alignment: "center",
+      softLead: "If you're still carrying\nsomething too heavy —",
+      headline: "stay.",
+      softWhy: "I'll show you what putting it down\nactually looks like.",
+      softSize: 46,
+      headlineSize: 280,
+    },
+  ],
+};
+
+/* ============================================================
+   STATE MANAGEMENT
+   ============================================================ */
+const STORAGE_KEY = "carousel-maker.v1";
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed.version !== 1) return null;
+    return parsed;
+  } catch { return null; }
+}
+
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch (err) {
+    toast("⚠️ Storage full — consider smaller photos", 3000);
+  }
+}
+
+let state = loadState() || structuredClone(defaultState);
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+function hexToRgba(hex, alpha = 1) {
+  // Accept #rgb, #rrggbb
+  const h = hex.replace("#", "");
+  const n = h.length === 3 ? h.split("").map(c => c + c).join("") : h;
+  const r = parseInt(n.substring(0, 2), 16);
+  const g = parseInt(n.substring(2, 4), 16);
+  const b = parseInt(n.substring(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function sanitizeHex(v) {
+  if (!v) return null;
+  if (!v.startsWith("#")) v = "#" + v;
+  const clean = v.match(/^#[0-9a-f]{3}$|^#[0-9a-f]{6}$/i);
+  return clean ? v : null;
+}
+
+function esc(s) {
+  return (s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function toast(msg, ms = 1500) {
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => el.classList.remove("show"), ms);
+}
+
+/* ============================================================
+   RENDER — PREVIEW
+   ============================================================ */
+function renderPreview() {
+  const root = document.getElementById("slides-preview");
+  const g = state.global;
+  const dotRgba = hexToRgba(g.dotColor, g.dotOpacity / 100);
+
+  root.innerHTML = state.slides.map((s, i) => renderSlideStage(s, i, g, dotRgba)).join("");
+
+  // Wire download links
+  root.querySelectorAll(".dl").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const idx = parseInt(btn.dataset.idx, 10);
+      exportSlide(idx);
+    });
+  });
+}
+
+function renderSlideStage(s, i, g, dotRgba) {
+  const inner = renderSlideInner(s, i, g, dotRgba);
+  const n = i + 1;
+  const total = state.slides.length;
+  const pad = String(n).padStart(2, "0");
+  const totalPad = String(total).padStart(2, "0");
+  return `
+    <div class="slide-stage">
+      <div class="slide-stage-meta">
+        <span>SLIDE ${pad} / ${totalPad}</span>
+        <span class="dl" data-idx="${i}">⇣ download png</span>
+      </div>
+      <div class="slide-box" id="slide-box-${i}">
+        ${inner}
+      </div>
+    </div>
+  `;
+}
+
+function renderSlideInner(s, i, g, dotRgba) {
+  const styleVars = [
+    `--bg-slide:${g.bgColor}`,
+    `--ink-slide:${g.inkColor}`,
+    `--footer-color:${hexToRgba(g.inkColor, 0.5)}`,
+    `--dot-color:${dotRgba}`,
+    `--dot-size:${g.dotSize}px`,
+    `--dot-spacing:${g.dotSpacing}px`,
+  ].join(";");
+
+  const classList = ["slide-inner"];
+  if (g.dotsEnabled && s.type !== "cover") classList.push("dots");
+  classList.push(s.type);
+  if (s.type === "text") classList.push("order-" + (s.order || "ba"));
+  classList.push("align-" + (s.alignment || "left"));
+
+  const handle = esc(g.handle || "");
+  const n = String(i + 1).padStart(2, "0");
+  const total = String(state.slides.length).padStart(2, "0");
+  const pageMark = `${n} / ${total}`;
+
+  let body = "";
+
+  if (s.type === "cover") {
+    const photoStyle = s.photo ? `--bg-photo: url('${s.photo}')` : "";
+    return `
+      <div class="slide-inner cover align-${s.alignment || "left"}" data-slide-id="${s.id}" style="${styleVars};${photoStyle}">
+        <div class="slide-mark"></div>
+        <div class="cover-copy">
+          <div class="slide-headline" style="color:#f6f3ec;font-size:${s.headlineSize || 132}px">${esc(s.headline || "")}</div>
+        </div>
+        <div class="slide-footer"><span>${handle}</span><span>${pageMark}</span></div>
+      </div>`;
+  }
+
+  if (s.type === "cta") {
+    return `
+      <div class="${classList.join(" ")}" data-slide-id="${s.id}" style="${styleVars}">
+        <div class="slide-mark"></div>
+        <div class="slide-soft lead" style="font-size:${s.softSize || 46}px">${esc(s.softLead || "")}</div>
+        <div class="slide-headline" style="font-size:${s.headlineSize || 280}px">${esc(s.headline || "")}</div>
+        <div class="slide-soft why" style="font-size:${s.softSize || 46}px">${esc(s.softWhy || "")}</div>
+        <div class="slide-footer"><span>${handle}</span><span>${pageMark}</span></div>
+      </div>`;
+  }
+
+  // text
+  const softEl = `<div class="slide-soft" style="font-size:${s.softSize || 54}px">${esc(s.soft || "")}</div>`;
+  const headlineEl = `<div class="slide-headline" style="font-size:${s.headlineSize || 108}px">${esc(s.headline || "")}</div>`;
+
+  const children = s.order === "ab" ? [softEl, headlineEl] : [headlineEl, softEl];
+
+  return `
+    <div class="${classList.join(" ")}" data-slide-id="${s.id}" style="${styleVars}">
+      <div class="slide-mark"></div>
+      ${children.join("")}
+      <div class="slide-footer"><span>${handle}</span><span>${pageMark}</span></div>
+    </div>`;
+}
+
+/* ============================================================
+   RENDER — CONTROLS
+   ============================================================ */
+function renderGlobalControls() {
+  const g = state.global;
+  document.getElementById("g-bg-color").value = g.bgColor;
+  document.getElementById("g-bg-hex").value = g.bgColor;
+  document.getElementById("g-ink-color").value = g.inkColor;
+  document.getElementById("g-ink-hex").value = g.inkColor;
+  document.getElementById("g-dots-enabled").checked = g.dotsEnabled;
+  document.getElementById("g-dot-color").value = g.dotColor;
+  document.getElementById("g-dot-hex").value = g.dotColor;
+  document.getElementById("g-dot-opacity").value = g.dotOpacity;
+  document.getElementById("g-dot-opacity-val").textContent = g.dotOpacity + "%";
+  document.getElementById("g-dot-size").value = g.dotSize;
+  document.getElementById("g-dot-size-val").textContent = g.dotSize + "px";
+  document.getElementById("g-dot-spacing").value = g.dotSpacing;
+  document.getElementById("g-dot-spacing-val").textContent = g.dotSpacing + "px";
+  document.getElementById("g-handle").value = g.handle;
+}
+
+function renderSlidesList() {
+  const list = document.getElementById("slides-list");
+  document.getElementById("slides-count").textContent =
+    state.slides.length + " slide" + (state.slides.length === 1 ? "" : "s");
+
+  list.innerHTML = state.slides.map((s, i) => slideCardHTML(s, i)).join("");
+
+  // Wire up per-slide events
+  list.querySelectorAll(".slide-card").forEach((card, idx) => {
+    const head = card.querySelector(".slide-card-head");
+    head.addEventListener("click", (e) => {
+      if (e.target.closest(".slide-card-head-actions")) return;
+      card.classList.toggle("open");
+    });
+  });
+
+  list.querySelectorAll("[data-slide-field]").forEach((el) => {
+    el.addEventListener("input", (e) => {
+      const idx = parseInt(el.closest(".slide-card").dataset.idx, 10);
+      const field = el.dataset.slideField;
+      let v = el.value;
+      if (el.type === "number" || el.type === "range") v = parseFloat(v);
+      state.slides[idx][field] = v;
+      saveState();
+      renderPreview();
+      // Also sync the "size" readout if present
+      const readout = el.parentElement.querySelector(".slider-val");
+      if (readout && (el.type === "range" || el.type === "number")) readout.textContent = v + "px";
+    });
+  });
+
+  list.querySelectorAll("[data-slide-chip]").forEach((el) => {
+    el.addEventListener("click", () => {
+      const idx = parseInt(el.closest(".slide-card").dataset.idx, 10);
+      const field = el.dataset.slideField;
+      const v = el.dataset.slideChip;
+      state.slides[idx][field] = v;
+      saveState();
+      renderSlidesList(); // re-render chips to show active state
+      renderPreview();
+    });
+  });
+
+  list.querySelectorAll("[data-slide-delete]").forEach((el) => {
+    el.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const idx = parseInt(el.closest(".slide-card").dataset.idx, 10);
+      if (state.slides.length <= 1) { toast("Can't delete last slide"); return; }
+      if (!confirm(`Delete slide ${idx + 1}?`)) return;
+      state.slides.splice(idx, 1);
+      saveState();
+      renderSlidesList();
+      renderPreview();
+    });
+  });
+
+  list.querySelectorAll("[data-slide-up], [data-slide-down]").forEach((el) => {
+    el.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const idx = parseInt(el.closest(".slide-card").dataset.idx, 10);
+      const delta = el.dataset.slideUp !== undefined ? -1 : 1;
+      const j = idx + delta;
+      if (j < 0 || j >= state.slides.length) return;
+      [state.slides[idx], state.slides[j]] = [state.slides[j], state.slides[idx]];
+      saveState();
+      renderSlidesList();
+      renderPreview();
+    });
+  });
+
+  list.querySelectorAll("[data-slide-photo]").forEach((el) => {
+    el.addEventListener("change", (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const idx = parseInt(el.closest(".slide-card").dataset.idx, 10);
+      const reader = new FileReader();
+      reader.onload = () => {
+        state.slides[idx].photo = reader.result;
+        saveState();
+        renderPreview();
+        toast("Photo loaded");
+      };
+      reader.readAsDataURL(file);
+    });
+  });
+
+  list.querySelectorAll("[data-slide-photo-clear]").forEach((el) => {
+    el.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const idx = parseInt(el.closest(".slide-card").dataset.idx, 10);
+      state.slides[idx].photo = null;
+      saveState();
+      renderSlidesList();
+      renderPreview();
+    });
+  });
+}
+
+function slideCardHTML(s, i) {
+  const typeLabel = { cover: "Photo cover", text: "Text", cta: "CTA (3-line)" }[s.type] || s.type;
+  const preview = {
+    cover: (s.headline || "").split("\n")[0] || "(no text)",
+    text: ((s.order === "ab" ? s.soft : s.headline) || "").split("\n")[0] || "(empty)",
+    cta: s.headline || "(empty)",
+  }[s.type];
+
+  let body = "";
+
+  // Alignment chip
+  const alignChips = `
+    <div class="field">
+      <label>Alignment</label>
+      <div class="chip-group">
+        ${["left", "center", "right"].map(a =>
+          `<span class="chip ${s.alignment === a ? "active" : ""}" data-slide-field="alignment" data-slide-chip="${a}">${a}</span>`
+        ).join("")}
+      </div>
+    </div>`;
+
+  if (s.type === "cover") {
+    body = `
+      <div class="field">
+        <label>Headline (Inter Black)</label>
+        <textarea data-slide-field="headline" placeholder="Use \\n for line breaks">${esc(s.headline || "")}</textarea>
+        <div class="hint">Line breaks with the Enter key.</div>
+      </div>
+      <div class="field">
+        <label>Headline size <span class="slider-val">${s.headlineSize || 132}px</span></label>
+        <input type="range" data-slide-field="headlineSize" min="40" max="260" step="2" value="${s.headlineSize || 132}">
+      </div>
+      ${alignChips}
+      <div class="field">
+        <label>Photo background</label>
+        <input type="file" data-slide-photo accept="image/*">
+        ${s.photo ? `<div style="margin-top:8px"><button class="btn small danger" data-slide-photo-clear>Remove photo</button></div>` : ""}
+      </div>
+    `;
+  } else if (s.type === "cta") {
+    body = `
+      <div class="field">
+        <label>Lead (top italic)</label>
+        <textarea data-slide-field="softLead">${esc(s.softLead || "")}</textarea>
+      </div>
+      <div class="field">
+        <label>Headline (huge, Inter Black)</label>
+        <textarea data-slide-field="headline">${esc(s.headline || "")}</textarea>
+      </div>
+      <div class="field">
+        <label>Why (bottom italic)</label>
+        <textarea data-slide-field="softWhy">${esc(s.softWhy || "")}</textarea>
+      </div>
+      <div class="field">
+        <label>Headline size <span class="slider-val">${s.headlineSize || 280}px</span></label>
+        <input type="range" data-slide-field="headlineSize" min="80" max="400" step="2" value="${s.headlineSize || 280}">
+      </div>
+      <div class="field">
+        <label>Italic size <span class="slider-val">${s.softSize || 46}px</span></label>
+        <input type="range" data-slide-field="softSize" min="20" max="100" step="1" value="${s.softSize || 46}">
+      </div>
+      ${alignChips}
+    `;
+  } else {
+    // text
+    body = `
+      <div class="field">
+        <label>Order</label>
+        <div class="chip-group">
+          <span class="chip ${s.order === "ab" ? "active" : ""}" data-slide-field="order" data-slide-chip="ab">Italic on top</span>
+          <span class="chip ${s.order === "ba" ? "active" : ""}" data-slide-field="order" data-slide-chip="ba">Italic on bottom</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Italic line (Apple Garamond)</label>
+        <textarea data-slide-field="soft">${esc(s.soft || "")}</textarea>
+      </div>
+      <div class="field">
+        <label>Headline (Inter Black)</label>
+        <textarea data-slide-field="headline">${esc(s.headline || "")}</textarea>
+      </div>
+      <div class="field">
+        <label>Headline size <span class="slider-val">${s.headlineSize || 108}px</span></label>
+        <input type="range" data-slide-field="headlineSize" min="40" max="260" step="2" value="${s.headlineSize || 108}">
+      </div>
+      <div class="field">
+        <label>Italic size <span class="slider-val">${s.softSize || 54}px</span></label>
+        <input type="range" data-slide-field="softSize" min="20" max="120" step="1" value="${s.softSize || 54}">
+      </div>
+      ${alignChips}
+    `;
+  }
+
+  return `
+    <div class="slide-card open" data-idx="${i}">
+      <div class="slide-card-head">
+        <div>
+          <h3>Slide ${i + 1} · ${typeLabel}</h3>
+          <div class="sub">${esc(preview.substring(0, 48))}${preview.length > 48 ? "…" : ""}</div>
+        </div>
+        <div class="slide-card-head-actions btn-row">
+          <button class="btn small" data-slide-up title="Move up">↑</button>
+          <button class="btn small" data-slide-down title="Move down">↓</button>
+          <button class="btn small danger" data-slide-delete title="Delete">✕</button>
+          <span class="chev">▾</span>
+        </div>
+      </div>
+      <div class="slide-card-body">${body}</div>
+    </div>
+  `;
+}
+
+/* ============================================================
+   WIRE UP GLOBAL CONTROLS
+   ============================================================ */
+function wireGlobalControls() {
+  function bindColor(colorId, hexId, key) {
+    const colorEl = document.getElementById(colorId);
+    const hexEl = document.getElementById(hexId);
+    colorEl.addEventListener("input", () => {
+      state.global[key] = colorEl.value;
+      hexEl.value = colorEl.value;
+      saveState(); renderPreview();
+    });
+    hexEl.addEventListener("input", () => {
+      const v = sanitizeHex(hexEl.value);
+      if (!v) return;
+      state.global[key] = v;
+      colorEl.value = v;
+      saveState(); renderPreview();
+    });
+  }
+  bindColor("g-bg-color", "g-bg-hex", "bgColor");
+  bindColor("g-ink-color", "g-ink-hex", "inkColor");
+  bindColor("g-dot-color", "g-dot-hex", "dotColor");
+
+  document.getElementById("g-dots-enabled").addEventListener("change", (e) => {
+    state.global.dotsEnabled = e.target.checked;
+    saveState(); renderPreview();
+  });
+
+  function bindRange(id, key, fmt) {
+    const el = document.getElementById(id);
+    const out = document.getElementById(id + "-val");
+    el.addEventListener("input", () => {
+      const v = parseFloat(el.value);
+      state.global[key] = v;
+      out.textContent = fmt(v);
+      saveState(); renderPreview();
+    });
+  }
+  bindRange("g-dot-opacity", "dotOpacity", v => v + "%");
+  bindRange("g-dot-size", "dotSize", v => v + "px");
+  bindRange("g-dot-spacing", "dotSpacing", v => v + "px");
+
+  document.getElementById("g-handle").addEventListener("input", (e) => {
+    state.global.handle = e.target.value;
+    saveState(); renderPreview();
+  });
+}
+
+/* ============================================================
+   ADD / EXPORT / SAVE-LOAD / RESET
+   ============================================================ */
+function addSlide(type) {
+  const id = "s" + Date.now();
+  const base = { id, type, alignment: "left" };
+  let slide;
+  if (type === "cover") {
+    slide = { ...base, photo: null, headline: "New cover headline", headlineSize: 132 };
+  } else if (type === "cta") {
+    slide = { ...base, alignment: "center", softLead: "Lead line —", headline: "CTA.", softWhy: "Why to stay.", softSize: 46, headlineSize: 280 };
+  } else {
+    slide = { ...base, order: "ba", soft: "Italic line.", headline: "Your headline.", softSize: 54, headlineSize: 108 };
+  }
+  state.slides.push(slide);
+  saveState();
+  renderSlidesList();
+  renderPreview();
+}
+
+async function exportSlide(i) {
+  const stage = document.getElementById("slide-box-" + i);
+  const inner = stage.querySelector(".slide-inner");
+  if (!inner) return;
+
+  toast("Rendering PNG…");
+  await document.fonts.ready;
+
+  // Clone the slide OUTSIDE the transform scale so html2canvas captures at native 1080x1350
+  const clone = inner.cloneNode(true);
+  clone.style.transform = "none";
+  clone.style.position = "fixed";
+  clone.style.top = "-20000px";
+  clone.style.left = "0";
+  clone.style.width = "1080px";
+  clone.style.height = "1350px";
+  document.body.appendChild(clone);
+
+  try {
+    const canvas = await html2canvas(clone, {
+      width: 1080,
+      height: 1350,
+      scale: 1,
+      backgroundColor: null,
+      useCORS: true,
+      logging: false,
+    });
+    const link = document.createElement("a");
+    link.download = `carousel-slide-${String(i + 1).padStart(2, "0")}.png`;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+    toast("✓ Slide " + (i + 1) + " downloaded");
+  } catch (err) {
+    console.error(err);
+    toast("✕ Export failed: " + err.message, 3000);
+  } finally {
+    document.body.removeChild(clone);
+  }
+}
+
+async function exportAll() {
+  for (let i = 0; i < state.slides.length; i++) {
+    await exportSlide(i);
+    await new Promise(r => setTimeout(r, 350)); // tiny delay so browser doesn't merge downloads
+  }
+  toast("✓ All slides downloaded");
+}
+
+function saveJSON() {
+  const data = JSON.stringify(state, null, 2);
+  const blob = new Blob([data], { type: "application/json" });
+  const link = document.createElement("a");
+  link.download = "carousel-design.json";
+  link.href = URL.createObjectURL(blob);
+  link.click();
+  URL.revokeObjectURL(link.href);
+  toast("✓ design.json saved");
+}
+
+function loadJSONFile() {
+  document.getElementById("load-json-file").click();
+}
+
+document.getElementById("load-json-file").addEventListener("change", (e) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const parsed = JSON.parse(reader.result);
+      if (parsed.version !== 1) throw new Error("Unsupported version");
+      state = parsed;
+      saveState();
+      renderGlobalControls();
+      renderSlidesList();
+      renderPreview();
+      toast("✓ Design loaded");
+    } catch (err) {
+      toast("✕ Invalid JSON: " + err.message, 3000);
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = ""; // reset so same file can be loaded again
+});
+
+function resetAll() {
+  if (!confirm("Reset everything to the default Shift carousel? This wipes your current design.")) return;
+  state = structuredClone(defaultState);
+  saveState();
+  renderGlobalControls();
+  renderSlidesList();
+  renderPreview();
+  toast("✓ Reset");
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+document.querySelectorAll("[data-add]").forEach((el) => {
+  el.addEventListener("click", () => addSlide(el.dataset.add));
+});
+document.getElementById("export-all").addEventListener("click", exportAll);
+document.getElementById("save-json").addEventListener("click", saveJSON);
+document.getElementById("load-json").addEventListener("click", loadJSONFile);
+document.getElementById("reset").addEventListener("click", resetAll);
+
+renderGlobalControls();
+wireGlobalControls();
+renderSlidesList();
+renderPreview();
+</script>
+</body>
+</html>
