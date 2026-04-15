@@ -204,10 +204,10 @@
     padding: 140px 120px;
     display: flex; flex-direction: column; justify-content: center;
   }
-  .slide-inner.dots {
-    background-image: radial-gradient(circle, var(--dot-color, rgba(92, 72, 30, 0.22)) var(--dot-size, 1.6px), transparent var(--dot-size, 1.6px));
-    background-size: var(--dot-spacing, 28px) var(--dot-spacing, 28px);
-    background-position: 14px 14px;
+  .slide-inner.has-pattern {
+    background-image: var(--pattern-image);
+    background-size: var(--pattern-size);
+    background-position: var(--pattern-position);
   }
 
   .slide-inner.align-left { text-align: left; align-items: flex-start; }
@@ -524,27 +524,67 @@ function askConfirm(msg, confirmLabel = "Delete", danger = true) {
    SEED THEMES + SEED "THE SHIFT" CAROUSEL
    ============================================================ */
 function seedThemes() {
+  const base = { dotOpacity: 22, dotSize: 1.6, dotSpacing: 28, accentMultiplier: 3, accentScale: 2.6, gridLineWidth: 1 };
   return {
     "cream-dots": {
       id: "cream-dots", name: "Cream + Dots",
       bgColor: "#f2ede3", inkColor: "#111111",
-      dotsEnabled: true, dotColor: "#5c4820", dotOpacity: 22, dotSize: 1.6, dotSpacing: 28,
+      patternType: "dots", dotColor: "#5c4820",
+      ...base,
+    },
+    "cream-layered-dots": {
+      id: "cream-layered-dots", name: "Cream + Layered dots",
+      bgColor: "#f2ede3", inkColor: "#111111",
+      patternType: "dots-accent-size", dotColor: "#5c4820",
+      ...base, dotOpacity: 22, dotSize: 1.4, dotSpacing: 28, accentMultiplier: 3, accentScale: 2.6,
+    },
+    "cream-intensity-dots": {
+      id: "cream-intensity-dots", name: "Cream + Intensity dots",
+      bgColor: "#f2ede3", inkColor: "#111111",
+      patternType: "dots-accent-bright", dotColor: "#5c4820",
+      ...base, dotOpacity: 12, dotSize: 1.6, dotSpacing: 28, accentMultiplier: 3, accentScale: 3,
+    },
+    "cream-grid": {
+      id: "cream-grid", name: "Cream + Grid",
+      bgColor: "#f2ede3", inkColor: "#111111",
+      patternType: "grid", dotColor: "#5c4820",
+      ...base, dotOpacity: 14, dotSpacing: 44, gridLineWidth: 1,
     },
     "cream-plain": {
-      id: "cream-plain", name: "Cream (no dots)",
+      id: "cream-plain", name: "Cream (plain)",
       bgColor: "#f2ede3", inkColor: "#111111",
-      dotsEnabled: false, dotColor: "#5c4820", dotOpacity: 22, dotSize: 1.6, dotSpacing: 28,
+      patternType: "none", dotColor: "#5c4820",
+      ...base,
     },
     "black-minimal": {
       id: "black-minimal", name: "Black minimal",
       bgColor: "#0e0e0e", inkColor: "#f6f3ec",
-      dotsEnabled: false, dotColor: "#ffffff", dotOpacity: 10, dotSize: 1.6, dotSpacing: 32,
+      patternType: "none", dotColor: "#ffffff",
+      ...base, dotOpacity: 10, dotSpacing: 32,
     },
     "dark-green": {
       id: "dark-green", name: "Dark green",
       bgColor: "#0d2a22", inkColor: "#f1ead6",
-      dotsEnabled: false, dotColor: "#f1ead6", dotOpacity: 8, dotSize: 1.6, dotSpacing: 30,
+      patternType: "dots", dotColor: "#f1ead6",
+      ...base, dotOpacity: 8, dotSpacing: 30,
     },
+  };
+}
+
+function normalizeTheme(t) {
+  if (!t) return t;
+  if (t.patternType) {
+    // Fill in missing fields
+    return {
+      accentMultiplier: 3, accentScale: 2.6, gridLineWidth: 1,
+      ...t,
+    };
+  }
+  // Migrate from v2.0 (dotsEnabled) to v2.1 (patternType)
+  return {
+    ...t,
+    patternType: t.dotsEnabled ? "dots" : "none",
+    accentMultiplier: 3, accentScale: 2.6, gridLineWidth: 1,
   };
 }
 
@@ -667,19 +707,25 @@ function migrateV1(v1) {
 const STORAGE_KEY = "carousel-maker.v2";
 const STORAGE_KEY_V1 = "carousel-maker.v1";
 
+function normalizeState(s) {
+  if (!s || !s.themes) return s;
+  Object.keys(s.themes).forEach(id => { s.themes[id] = normalizeTheme(s.themes[id]); });
+  return s;
+}
+
 function loadState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (parsed.version === 2) return parsed;
+      if (parsed.version === 2) return normalizeState(parsed);
     }
     // try migrating from v1
     const v1raw = localStorage.getItem(STORAGE_KEY_V1);
     if (v1raw) {
       const v1 = JSON.parse(v1raw);
       if (v1.version === 1) {
-        const migrated = migrateV1(v1);
+        const migrated = normalizeState(migrateV1(v1));
         localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
         toast("✓ Migrated from v1", 2200);
         return migrated;
@@ -705,10 +751,73 @@ function currentCarousel() {
 function slidesOf() { return currentCarousel().slides; }
 
 function getTheme(themeId) {
-  if (themeId === "__default__" || !themeId) return state.themes[state.defaultThemeId] || firstTheme();
-  return state.themes[themeId] || state.themes[state.defaultThemeId] || firstTheme();
+  if (themeId === "__default__" || !themeId) return normalizeTheme(state.themes[state.defaultThemeId]) || firstTheme();
+  return normalizeTheme(state.themes[themeId]) || normalizeTheme(state.themes[state.defaultThemeId]) || firstTheme();
 }
-function firstTheme() { return Object.values(state.themes)[0]; }
+function firstTheme() { return normalizeTheme(Object.values(state.themes)[0]); }
+
+// Returns { image, size, position } CSS strings, or null for "none"
+function patternCSS(theme) {
+  const type = theme.patternType || "none";
+  if (type === "none") return null;
+
+  const color = hexToRgba(theme.dotColor, theme.dotOpacity / 100);
+  const sp = theme.dotSpacing || 28;
+  const ds = theme.dotSize || 1.6;
+  const mult = Math.max(2, Math.min(6, theme.accentMultiplier || 3));
+  const scale = Math.max(1, theme.accentScale || 2.6);
+
+  if (type === "dots") {
+    return {
+      image: `radial-gradient(circle, ${color} ${ds}px, transparent ${ds}px)`,
+      size: `${sp}px ${sp}px`,
+      position: `${sp / 2}px ${sp / 2}px`,
+    };
+  }
+
+  if (type === "dots-accent-size") {
+    // small dots everywhere + larger dots on every mult-th cell
+    const accentSize = ds * scale;
+    return {
+      image: [
+        `radial-gradient(circle, ${color} ${ds}px, transparent ${ds}px)`,
+        `radial-gradient(circle, ${color} ${accentSize}px, transparent ${accentSize}px)`,
+      ].join(", "),
+      size: `${sp}px ${sp}px, ${sp * mult}px ${sp * mult}px`,
+      position: `${sp / 2}px ${sp / 2}px, ${sp / 2}px ${sp / 2}px`,
+    };
+  }
+
+  if (type === "dots-accent-bright") {
+    // faint dots everywhere + brighter dots on every mult-th cell
+    const faintAlpha = Math.max(0.02, (theme.dotOpacity / 100) * 0.4);
+    const brightAlpha = Math.min(1, (theme.dotOpacity / 100) * scale);
+    const faint = hexToRgba(theme.dotColor, faintAlpha);
+    const bright = hexToRgba(theme.dotColor, brightAlpha);
+    return {
+      image: [
+        `radial-gradient(circle, ${faint} ${ds}px, transparent ${ds}px)`,
+        `radial-gradient(circle, ${bright} ${ds * 1.1}px, transparent ${ds * 1.1}px)`,
+      ].join(", "),
+      size: `${sp}px ${sp}px, ${sp * mult}px ${sp * mult}px`,
+      position: `${sp / 2}px ${sp / 2}px, ${sp / 2}px ${sp / 2}px`,
+    };
+  }
+
+  if (type === "grid") {
+    const lw = theme.gridLineWidth || 1;
+    return {
+      image: [
+        `linear-gradient(to right, ${color} ${lw}px, transparent ${lw}px)`,
+        `linear-gradient(to bottom, ${color} ${lw}px, transparent ${lw}px)`,
+      ].join(", "),
+      size: `${sp}px ${sp}px, ${sp}px ${sp}px`,
+      position: `0 0, 0 0`,
+    };
+  }
+
+  return null;
+}
 
 /* ============================================================
    RENDER — PREVIEW
@@ -747,18 +856,21 @@ function renderSlideInner(s, i) {
   const total = String(slidesOf().length).padStart(2, "0");
   const pageMark = `${n} / ${total}`;
 
-  const dotRgba = hexToRgba(theme.dotColor, theme.dotOpacity / 100);
-  const styleVars = [
+  const pattern = s.type !== "cover" ? patternCSS(theme) : null;
+  const styleParts = [
     `--bg-slide:${theme.bgColor}`,
     `--ink-slide:${theme.inkColor}`,
     `--footer-color:${hexToRgba(theme.inkColor, 0.5)}`,
-    `--dot-color:${dotRgba}`,
-    `--dot-size:${theme.dotSize}px`,
-    `--dot-spacing:${theme.dotSpacing}px`,
-  ].join(";");
+  ];
+  if (pattern) {
+    styleParts.push(`--pattern-image:${pattern.image}`);
+    styleParts.push(`--pattern-size:${pattern.size}`);
+    styleParts.push(`--pattern-position:${pattern.position}`);
+  }
+  const styleVars = styleParts.join(";");
 
   const classList = ["slide-inner"];
-  if (theme.dotsEnabled && s.type !== "cover") classList.push("dots");
+  if (pattern) classList.push("has-pattern");
   classList.push(s.type);
   if (s.type === "text") classList.push("order-" + (s.order || "ba"));
   classList.push("align-" + (s.alignment || "left"));
@@ -890,7 +1002,8 @@ function renderThemesList() {
   });
 
   root.querySelectorAll("[data-theme-field]").forEach((el) => {
-    el.addEventListener("input", () => {
+    const evtName = (el.tagName === "SELECT") ? "change" : "input";
+    el.addEventListener(evtName, () => {
       const card = el.closest(".card");
       const id = card.dataset.themeId;
       const field = el.dataset.themeField;
@@ -900,20 +1013,26 @@ function renderThemesList() {
       state.themes[id][field] = v;
       saveState();
 
+      // If pattern type changed, the conditional fields differ — re-render the whole list
+      if (field === "patternType") {
+        renderThemesList();
+        renderPreview();
+        // Re-open this card
+        const c = document.querySelector(`[data-theme-id="${id}"]`);
+        if (c) c.classList.add("open");
+        return;
+      }
+
       const readout = el.parentElement.querySelector(".slider-val");
       if (readout && (el.type === "range" || el.type === "number")) {
         const unit = el.dataset.unit || "";
         readout.textContent = v + unit;
       }
-      // color hex mirror
       if (el.type === "color") {
         const mirror = card.querySelector(`[data-theme-hex-for="${field}"]`);
         if (mirror) mirror.value = el.value;
       }
       renderPreview();
-      // Also re-sync the "preview swatch" in the theme head:
-      renderCarouselPicker(); // no-op for themes but safe
-      // Targeted swatch refresh:
       const swatchEl = card.querySelector(".theme-swatch");
       if (swatchEl) swatchEl.style.background = state.themes[id].bgColor;
     });
@@ -977,6 +1096,71 @@ function renderThemesList() {
 }
 
 function themeCardHTML(t) {
+  t = normalizeTheme(t);
+  const typeLabel = {
+    "none": "plain",
+    "dots": "dots",
+    "dots-accent-size": "dots + size accent",
+    "dots-accent-bright": "dots + intensity accent",
+    "grid": "grid",
+  }[t.patternType] || "plain";
+
+  const patternOptions = [
+    ["none", "None (plain)"],
+    ["dots", "Bullet-journal dots"],
+    ["dots-accent-size", "Dots + size accent (every Nth dot larger)"],
+    ["dots-accent-bright", "Dots + intensity accent (every Nth dot brighter)"],
+    ["grid", "Graph grid (ruled notebook)"],
+  ].map(([v, label]) => `<option value="${v}" ${t.patternType === v ? "selected" : ""}>${esc(label)}</option>`).join("");
+
+  const showPatternFields = t.patternType !== "none";
+  const isDotsVariant = t.patternType?.startsWith("dots");
+  const isAccentVariant = t.patternType === "dots-accent-size" || t.patternType === "dots-accent-bright";
+  const isGrid = t.patternType === "grid";
+
+  const dotColor = `
+    <div class="field">
+      <label>${isGrid ? "Line" : "Dot"} color</label>
+      <div class="field-row">
+        <input type="color" data-theme-field="dotColor" value="${t.dotColor}">
+        <input type="text" data-theme-hex="dotColor" data-theme-hex-for="dotColor" value="${t.dotColor}" maxlength="9">
+      </div>
+    </div>`;
+  const opacity = `
+    <div class="field">
+      <label>${isGrid ? "Line" : "Dot"} opacity <span class="slider-val">${t.dotOpacity}%</span></label>
+      <input type="range" data-theme-field="dotOpacity" data-unit="%" min="0" max="100" value="${t.dotOpacity}">
+    </div>`;
+  const size = isDotsVariant ? `
+    <div class="field">
+      <label>Dot size <span class="slider-val">${t.dotSize}px</span></label>
+      <input type="range" data-theme-field="dotSize" data-unit="px" min="0.5" max="4" step="0.1" value="${t.dotSize}">
+    </div>` : "";
+  const gridWidth = isGrid ? `
+    <div class="field">
+      <label>Line width <span class="slider-val">${t.gridLineWidth || 1}px</span></label>
+      <input type="range" data-theme-field="gridLineWidth" data-unit="px" min="0.5" max="3" step="0.5" value="${t.gridLineWidth || 1}">
+    </div>` : "";
+  const spacing = `
+    <div class="field">
+      <label>${isGrid ? "Cell size" : "Dot spacing"} <span class="slider-val">${t.dotSpacing}px</span></label>
+      <input type="range" data-theme-field="dotSpacing" data-unit="px" min="12" max="80" step="1" value="${t.dotSpacing}">
+    </div>`;
+  const accentMult = isAccentVariant ? `
+    <div class="field">
+      <label>Accent every Nth cell <span class="slider-val">${t.accentMultiplier}×</span></label>
+      <input type="range" data-theme-field="accentMultiplier" data-unit="×" min="2" max="6" step="1" value="${t.accentMultiplier}">
+    </div>` : "";
+  const accentScale = isAccentVariant ? `
+    <div class="field">
+      <label>Accent ${t.patternType === "dots-accent-size" ? "size" : "brightness"} boost <span class="slider-val">${t.accentScale}×</span></label>
+      <input type="range" data-theme-field="accentScale" data-unit="×" min="1.2" max="5" step="0.1" value="${t.accentScale}">
+    </div>` : "";
+
+  const patternBlock = showPatternFields
+    ? dotColor + opacity + size + gridWidth + spacing + accentMult + accentScale
+    : "";
+
   return `
     <div class="card" data-theme-id="${t.id}">
       <div class="card-head">
@@ -984,7 +1168,7 @@ function themeCardHTML(t) {
           <span class="theme-swatch" style="background:${t.bgColor}"></span>
           <div>
             <h3>${esc(t.name)}</h3>
-            <div class="sub">${t.bgColor} · ${t.dotsEnabled ? "dots" : "plain"}</div>
+            <div class="sub">${t.bgColor} · ${typeLabel}</div>
           </div>
         </div>
         <div class="card-actions">
@@ -1010,27 +1194,10 @@ function themeCardHTML(t) {
           </div>
         </div>
         <div class="field">
-          <label><input type="checkbox" data-theme-field="dotsEnabled" ${t.dotsEnabled ? "checked" : ""}> Bullet-journal dots</label>
+          <label>Pattern</label>
+          <select data-theme-field="patternType">${patternOptions}</select>
         </div>
-        <div class="field">
-          <label>Dot color</label>
-          <div class="field-row">
-            <input type="color" data-theme-field="dotColor" value="${t.dotColor}">
-            <input type="text" data-theme-hex="dotColor" data-theme-hex-for="dotColor" value="${t.dotColor}" maxlength="9">
-          </div>
-        </div>
-        <div class="field">
-          <label>Dot opacity <span class="slider-val">${t.dotOpacity}%</span></label>
-          <input type="range" data-theme-field="dotOpacity" data-unit="%" min="0" max="100" value="${t.dotOpacity}">
-        </div>
-        <div class="field">
-          <label>Dot size <span class="slider-val">${t.dotSize}px</span></label>
-          <input type="range" data-theme-field="dotSize" data-unit="px" min="0.5" max="4" step="0.1" value="${t.dotSize}">
-        </div>
-        <div class="field">
-          <label>Dot spacing <span class="slider-val">${t.dotSpacing}px</span></label>
-          <input type="range" data-theme-field="dotSpacing" data-unit="px" min="12" max="60" step="1" value="${t.dotSpacing}">
-        </div>
+        ${patternBlock}
       </div>
     </div>
   `;
@@ -1419,7 +1586,9 @@ document.getElementById("theme-new").addEventListener("click", async () => {
   state.themes[id] = {
     id, name,
     bgColor: "#f2ede3", inkColor: "#111111",
-    dotsEnabled: false, dotColor: "#5c4820", dotOpacity: 22, dotSize: 1.6, dotSpacing: 28,
+    patternType: "dots", dotColor: "#5c4820",
+    dotOpacity: 22, dotSize: 1.6, dotSpacing: 28,
+    accentMultiplier: 3, accentScale: 2.6, gridLineWidth: 1,
   };
   saveState(); renderThemesList(); renderGlobalControls(); renderSlidesList();
   toast("✓ Theme created");
