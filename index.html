@@ -252,15 +252,62 @@
 
   .slide-inner.cover {
     padding: 0; background-color: #1a1a1a;
-    background-image:
-      linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.0) 35%, rgba(0,0,0,0.0) 55%, rgba(0,0,0,0.85) 100%),
-      var(--bg-photo, radial-gradient(120% 80% at 50% 40%, #4a463f 0%, #2b2823 45%, #0e0d0b 100%));
-    background-size: cover, cover; background-position: center, center;
+  }
+  .slide-inner.cover.no-photo {
+    background-image: radial-gradient(120% 80% at 50% 40%, #4a463f 0%, #2b2823 45%, #0e0d0b 100%);
+    background-size: cover; background-position: center;
   }
   .slide-inner.cover .cover-copy {
     position: absolute; left: 120px; right: 120px; bottom: 180px;
+    z-index: 5;
   }
   .slide-inner.cover .slide-headline, .slide-inner.cover .slide-soft { color: #f6f3ec; }
+
+  /* ————— Photo + texture layers (any slide type) ————— */
+  .slide-photo, .slide-texture, .slide-dim, .slide-gradient-bottom {
+    position: absolute; inset: 0; pointer-events: none;
+  }
+  .slide-photo {
+    background-size: cover;
+    background-position: center;
+    background-color: #111;
+    z-index: 0;
+  }
+  .slide-photo.filter-grayscale { filter: grayscale(1) contrast(1.02); }
+  .slide-photo.filter-sepia { filter: sepia(0.7) saturate(1.1); }
+  .slide-photo.filter-dim { filter: brightness(0.6); }
+  .slide-photo.filter-faded { filter: grayscale(0.6) brightness(1.05) contrast(0.95); }
+
+  .slide-texture {
+    background-repeat: repeat;
+    z-index: 1;
+  }
+  .slide-texture.blend-multiply { mix-blend-mode: multiply; }
+  .slide-texture.blend-overlay { mix-blend-mode: overlay; }
+  .slide-texture.blend-soft-light { mix-blend-mode: soft-light; }
+
+  .slide-dim {
+    background: #000;
+    z-index: 2;
+  }
+
+  .slide-gradient-bottom {
+    background: linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0) 32%, rgba(0,0,0,0) 55%, rgba(0,0,0,0.85) 100%);
+    z-index: 3;
+  }
+
+  /* Content (mark, text, footer) sits above all photo layers */
+  .slide-inner.has-photo .slide-mark,
+  .slide-inner.has-photo .slide-headline,
+  .slide-inner.has-photo .slide-soft,
+  .slide-inner.has-photo .slide-subtitle,
+  .slide-inner.has-photo .slide-body,
+  .slide-inner.has-photo .slide-footer,
+  .slide-inner.has-photo .cover-copy,
+  .slide-inner.has-photo .slide-icon {
+    position: relative;
+    z-index: 5;
+  }
 
   .slide-footer {
     position: absolute; left: 120px; right: 120px; bottom: 80px;
@@ -482,6 +529,72 @@ function toast(msg, ms = 1500) {
   el.classList.add("show");
   clearTimeout(toast._t);
   toast._t = setTimeout(() => el.classList.remove("show"), ms);
+}
+
+// Generate texture tile as a PNG data URL via HTML5 Canvas.
+// Black + white noise pixels with varying alpha → works reliably in html2canvas.
+// Cached per type for perf.
+function textureDataURL(type) {
+  textureDataURL._cache = textureDataURL._cache || {};
+  if (textureDataURL._cache[type]) return textureDataURL._cache[type];
+
+  const size = 400;
+  const c = document.createElement("canvas");
+  c.width = c.height = size;
+  const ctx = c.getContext("2d");
+  const img = ctx.createImageData(size, size);
+  const d = img.data;
+
+  // Seeded pseudo-random — deterministic, tileable-enough
+  function rnd(x, y) {
+    const s = Math.sin(x * 12.9898 + y * 78.233 + 1.234) * 43758.5453;
+    return s - Math.floor(s);
+  }
+
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      let value = 0;   // 0..1 — how dark (shadows)
+      let highlight = 0; // 0..1 — how bright (highlights)
+
+      if (type === "grain") {
+        // Fine film grain — high-frequency mix of highlights and shadows
+        const n = rnd(x * 1.7, y * 1.7);
+        if (n > 0.82) highlight = (n - 0.82) * 5;
+        else if (n < 0.18) value = (0.18 - n) * 5;
+      } else if (type === "paper") {
+        // Horizontally stretched fibers (linen / laid paper)
+        const n1 = rnd(x * 0.04, y * 1.1);
+        const n2 = rnd(x * 0.12, y * 2.3);
+        const m = n1 * 0.65 + n2 * 0.35;
+        if (m > 0.68) highlight = (m - 0.68) * 2.5;
+        else if (m < 0.32) value = (0.32 - m) * 2.5;
+      } else if (type === "canvas") {
+        // Cross-hatched weave — vertical and horizontal bias
+        const vert = rnd(x * 0.25, y * 1.3);
+        const horz = rnd(x * 1.3, y * 0.25);
+        const m = Math.abs(vert - horz);
+        if (m > 0.55) value = (m - 0.55) * 2;
+        else if (m < 0.15) highlight = (0.15 - m) * 3;
+      } else {
+        continue;
+      }
+
+      const idx = (y * size + x) * 4;
+      // Shadows win over highlights
+      if (value > 0) {
+        d[idx] = 0; d[idx + 1] = 0; d[idx + 2] = 0;
+        d[idx + 3] = Math.min(255, Math.floor(value * 230));
+      } else if (highlight > 0) {
+        d[idx] = 255; d[idx + 1] = 255; d[idx + 2] = 255;
+        d[idx + 3] = Math.min(255, Math.floor(highlight * 180));
+      }
+    }
+  }
+
+  ctx.putImageData(img, 0, 0);
+  const url = `url('${c.toDataURL("image/png")}')`;
+  textureDataURL._cache[type] = url;
+  return url;
 }
 
 // Inline modal replacement for native prompt() — works consistently in all browsers
@@ -929,7 +1042,9 @@ function renderSlideInner(s, i) {
   const total = String(slidesOf().length).padStart(2, "0");
   const pageMark = `${n} / ${total}`;
 
-  const pattern = s.type !== "cover" ? patternCSS(theme) : null;
+  const hasPhoto = !!s.photo;
+  // Pattern suppressed when a photo covers the slide (photo replaces pattern)
+  const pattern = !hasPhoto && s.type !== "cover" ? patternCSS(theme) : null;
   const styleParts = [
     `--bg-slide:${theme.bgColor}`,
     `--ink-slide:${theme.inkColor}`,
@@ -951,20 +1066,42 @@ function renderSlideInner(s, i) {
   const classList = ["slide-inner"];
   if (pattern) classList.push("has-pattern");
   if (pattern && pattern.accentImage) classList.push("has-accent");
+  if (hasPhoto) classList.push("has-photo");
+  else if (s.type === "cover") classList.push("no-photo");
   classList.push(s.type);
   if (s.type === "text") classList.push("order-" + (s.order || "ba"));
   classList.push("align-" + (s.alignment || "left"));
 
+  // Photo + texture + dim layers (for ANY slide with a photo)
+  let photoLayers = "";
+  if (hasPhoto) {
+    const filter = s.photoFilter && s.photoFilter !== "none" ? ` filter-${s.photoFilter}` : "";
+    photoLayers += `<div class="slide-photo${filter}" style="background-image:url('${s.photo}')"></div>`;
+    if (s.photoTexture && s.photoTexture !== "none") {
+      const tex = textureDataURL(s.photoTexture);
+      if (tex) {
+        const opacity = (s.photoTextureOpacity != null ? s.photoTextureOpacity : 60) / 100;
+        photoLayers += `<div class="slide-texture" style="background-image:${tex};opacity:${opacity}"></div>`;
+      }
+    }
+    if (s.photoDim && s.photoDim > 0) {
+      photoLayers += `<div class="slide-dim" style="opacity:${s.photoDim / 100}"></div>`;
+    }
+    if (s.type === "cover") photoLayers += `<div class="slide-gradient-bottom"></div>`;
+  } else if (s.type === "cover") {
+    photoLayers += `<div class="slide-gradient-bottom"></div>`;
+  }
+
   const iconHTML = renderIconHTML(s.icon);
 
   if (s.type === "cover") {
-    const photoStyle = s.photo ? `--bg-photo: url('${s.photo}')` : "";
     return `
-      <div class="slide-inner cover align-${s.alignment || "left"}" data-slide-id="${s.id}" style="${styleVars};${photoStyle}">
+      <div class="${classList.join(" ")}" data-slide-id="${s.id}" style="${styleVars}">
+        ${photoLayers}
         <div class="slide-mark"></div>
         ${iconHTML}
         <div class="cover-copy">
-          <div class="slide-headline" style="color:#f6f3ec;font-size:${s.headlineSize || 132}px">${esc(s.headline || "")}</div>
+          <div class="slide-headline" style="font-size:${s.headlineSize || 132}px">${esc(s.headline || "")}</div>
         </div>
         <div class="slide-footer"><span>${handle}</span><span>${pageMark}</span></div>
       </div>`;
@@ -973,6 +1110,7 @@ function renderSlideInner(s, i) {
   if (s.type === "cta") {
     return `
       <div class="${classList.join(" ")}" data-slide-id="${s.id}" style="${styleVars}">
+        ${photoLayers}
         <div class="slide-mark"></div>
         ${iconHTML}
         <div class="slide-soft lead" style="font-size:${s.softSize || 46}px">${esc(s.softLead || "")}</div>
@@ -989,6 +1127,7 @@ function renderSlideInner(s, i) {
     const paragraphs = (s.body || "").split(/\n\s*\n/).map(p => `<p>${esc(p.trim())}</p>`).join("");
     return `
       <div class="${classList.join(" ")}" data-slide-id="${s.id}" style="${styleVars}">
+        ${photoLayers}
         <div class="slide-mark"></div>
         ${iconHTML}
         <div class="slide-headline" style="font-size:${s.headlineSize || 92}px">${esc(s.headline || "")}</div>
@@ -1005,6 +1144,7 @@ function renderSlideInner(s, i) {
 
   return `
     <div class="${classList.join(" ")}" data-slide-id="${s.id}" style="${styleVars}">
+      ${photoLayers}
       <div class="slide-mark"></div>
       ${iconHTML}
       ${children.join("")}
@@ -1352,13 +1492,23 @@ function renderSlidesList() {
   });
 
   root.querySelectorAll("[data-slide-field]").forEach((el) => {
-    el.addEventListener("input", () => {
+    const evtName = (el.tagName === "SELECT") ? "change" : "input";
+    el.addEventListener(evtName, () => {
       const idx = parseInt(el.closest(".card").dataset.idx, 10);
       const field = el.dataset.slideField;
       let v = el.value;
       if (el.type === "number" || el.type === "range") v = parseFloat(v);
       slidesOf()[idx][field] = v;
       saveState();
+
+      // Re-render slide card when a conditional-UI field changes
+      if (field === "photoTexture") {
+        renderSlidesList(); renderPreview();
+        const c = document.querySelector(`.card[data-idx="${idx}"]`);
+        if (c) c.classList.add("open");
+        return;
+      }
+
       renderPreview();
       const readout = el.parentElement.querySelector(".slider-val");
       if (readout && (el.type === "range" || el.type === "number")) {
@@ -1533,6 +1683,41 @@ function slideCardHTML(s, i) {
       ` : ""}
     </div>`;
 
+  // Unified photo + texture + filter + dim block (all slide types)
+  const photoTextureOpts = [["none", "None"], ["grain", "Grain (film noise)"], ["paper", "Paper (linen fibers)"], ["canvas", "Canvas (tighter weave)"]];
+  const photoFilterOpts = [["none", "None"], ["grayscale", "Grayscale"], ["sepia", "Sepia"], ["faded", "Faded"], ["dim", "Dim"]];
+  const photoBlock = `
+    <div class="field">
+      <label>Photo background ${s.photo ? "✓" : "(optional)"}</label>
+      <input type="file" data-slide-photo accept="image/*">
+      ${s.photo ? `
+        <div style="margin-top:10px">
+          <div class="field">
+            <label>Texture overlay</label>
+            <select data-slide-field="photoTexture">
+              ${photoTextureOpts.map(([v, l]) => `<option value="${v}" ${s.photoTexture === v ? "selected" : ""}>${esc(l)}</option>`).join("")}
+            </select>
+          </div>
+          ${s.photoTexture && s.photoTexture !== "none" ? `
+            <div class="field">
+              <label>Texture opacity <span class="slider-val">${s.photoTextureOpacity != null ? s.photoTextureOpacity : 60}%</span></label>
+              <input type="range" data-slide-field="photoTextureOpacity" data-unit="%" min="0" max="100" step="2" value="${s.photoTextureOpacity != null ? s.photoTextureOpacity : 60}">
+            </div>` : ""}
+          <div class="field">
+            <label>Photo filter</label>
+            <select data-slide-field="photoFilter">
+              ${photoFilterOpts.map(([v, l]) => `<option value="${v}" ${s.photoFilter === v ? "selected" : ""}>${esc(l)}</option>`).join("")}
+            </select>
+          </div>
+          <div class="field">
+            <label>Dim (dark overlay for legibility) <span class="slider-val">${s.photoDim || 0}%</span></label>
+            <input type="range" data-slide-field="photoDim" data-unit="%" min="0" max="80" step="2" value="${s.photoDim || 0}">
+          </div>
+          <button class="btn small danger" data-slide-photo-clear>Remove photo</button>
+        </div>
+      ` : ""}
+    </div>`;
+
   let body = "";
   if (s.type === "cover") {
     body = `
@@ -1546,11 +1731,7 @@ function slideCardHTML(s, i) {
       </div>
       ${themeDropdown}
       ${alignChips}
-      <div class="field">
-        <label>Photo background</label>
-        <input type="file" data-slide-photo accept="image/*">
-        ${s.photo ? `<div style="margin-top:8px"><button class="btn small danger" data-slide-photo-clear>Remove photo</button></div>` : ""}
-      </div>
+      ${photoBlock}
       ${iconBlock}
     `;
   } else if (s.type === "cta") {
@@ -1577,6 +1758,7 @@ function slideCardHTML(s, i) {
       </div>
       ${themeDropdown}
       ${alignChips}
+      ${photoBlock}
       ${iconBlock}
     `;
   } else if (s.type === "info") {
@@ -1608,6 +1790,7 @@ function slideCardHTML(s, i) {
       </div>
       ${themeDropdown}
       ${alignChips}
+      ${photoBlock}
       ${iconBlock}
     `;
   } else {
@@ -1637,6 +1820,7 @@ function slideCardHTML(s, i) {
       </div>
       ${themeDropdown}
       ${alignChips}
+      ${photoBlock}
       ${iconBlock}
     `;
   }
