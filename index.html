@@ -418,6 +418,179 @@
   }
   .slide-inner.info .slide-body p + p { margin-top: 28px; }
 
+  /* ———————————————————— screenshot / prompt / comparison / list — editable slide types ———————————————————— */
+  .slide-inner.screenshot,
+  .slide-inner.prompt,
+  .slide-inner.comparison,
+  .slide-inner.list {
+    padding: 140px 120px;
+    align-items: flex-start;
+    justify-content: flex-start;
+  }
+
+  .slide-tag {
+    font-family: 'Inter', sans-serif;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.25em;
+    color: #5c4820;
+    margin-bottom: 44px;
+    white-space: pre-wrap;
+  }
+
+  .slide-inner.screenshot .slide-headline,
+  .slide-inner.prompt .slide-headline,
+  .slide-inner.comparison .slide-headline,
+  .slide-inner.list .slide-headline {
+    line-height: 0.98;
+    letter-spacing: -0.045em;
+    margin-bottom: 56px;
+  }
+
+  /* screenshot */
+  .slide-inner.screenshot .slide-image {
+    width: 100%;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 12px 50px rgba(0,0,0,0.18);
+    margin-bottom: 36px;
+    background: rgba(0,0,0,0.04);
+    max-height: 760px;
+  }
+  .slide-inner.screenshot .slide-image img {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 760px;
+    object-fit: cover;
+  }
+  .slide-inner.screenshot .slide-image-placeholder {
+    width: 100%;
+    height: 560px;
+    border-radius: 18px;
+    border: 3px dashed rgba(0,0,0,0.18);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Apple Garamond', serif;
+    font-style: italic;
+    color: rgba(0,0,0,0.4);
+    font-size: 40px;
+    margin-bottom: 36px;
+  }
+
+  /* prompt */
+  .slide-inner.prompt .slide-prompt {
+    font-family: 'SFMono-Regular', 'Menlo', 'Consolas', monospace;
+    font-size: 30px;
+    line-height: 1.5;
+    letter-spacing: -0.01em;
+    background: rgba(255, 255, 255, 0.55);
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 18px;
+    padding: 48px 44px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    color: inherit;
+    margin-bottom: 36px;
+    width: 100%;
+    max-height: 720px;
+    overflow: hidden;
+  }
+
+  /* comparison */
+  .slide-inner.comparison .slide-compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    width: 100%;
+    margin-bottom: 36px;
+  }
+  .slide-inner.comparison .slide-compare-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .slide-inner.comparison .slide-compare-item {
+    aspect-ratio: 1 / 1.25;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    background: rgba(0,0,0,0.05);
+  }
+  .slide-inner.comparison .slide-compare-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .slide-inner.comparison .slide-compare-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Apple Garamond', serif;
+    font-style: italic;
+    color: rgba(0,0,0,0.4);
+    font-size: 28px;
+    border: 3px dashed rgba(0,0,0,0.18);
+    border-radius: 14px;
+  }
+  .slide-inner.comparison .slide-compare-label {
+    font-family: 'Inter', sans-serif;
+    font-weight: 900;
+    font-size: 22px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: #5c4820;
+    text-align: center;
+  }
+
+  /* list */
+  .slide-inner.list .slide-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 36px 0;
+    width: 100%;
+  }
+  .slide-inner.list .slide-list li {
+    display: flex;
+    gap: 36px;
+    align-items: baseline;
+    margin-bottom: 32px;
+    line-height: 1.2;
+  }
+  .slide-inner.list .slide-list li:last-child { margin-bottom: 0; }
+  .slide-inner.list .slide-list .num {
+    font-family: 'Inter', sans-serif;
+    font-weight: 900;
+    letter-spacing: -0.045em;
+    color: inherit;
+    flex: 0 0 auto;
+    min-width: 72px;
+  }
+  .slide-inner.list .slide-list .text {
+    font-family: 'Apple Garamond', 'ITC Garamond Std', 'Garamond', 'Hoefler Text', 'Times New Roman', serif;
+    font-style: italic;
+    color: inherit;
+    line-height: 1.25;
+  }
+
+  /* Shared caption for all four new types — sits at the bottom */
+  .slide-inner.screenshot .slide-caption,
+  .slide-inner.prompt .slide-caption,
+  .slide-inner.comparison .slide-caption,
+  .slide-inner.list .slide-caption {
+    font-family: 'Apple Garamond', 'ITC Garamond Std', 'Garamond', 'Hoefler Text', 'Times New Roman', serif;
+    font-style: italic;
+    line-height: 1.25;
+    color: inherit;
+    opacity: 0.72;
+    margin-top: auto;
+    white-space: pre-wrap;
+  }
+
   .theme-preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 6px; margin-bottom: 10px; }
   .theme-preview-chip {
     height: 44px; border-radius: 6px; position: relative;
@@ -486,6 +659,10 @@
         <button class="btn small" data-add="text">+ Text</button>
         <button class="btn small" data-add="cta">+ CTA (3-line)</button>
         <button class="btn small" data-add="info">+ Info (editorial)</button>
+        <button class="btn small" data-add="screenshot">+ Screenshot</button>
+        <button class="btn small" data-add="prompt">+ Prompt</button>
+        <button class="btn small" data-add="comparison">+ Comparison</button>
+        <button class="btn small" data-add="list">+ List</button>
       </div>
     </div>
 
@@ -1179,6 +1356,86 @@ function renderSlideInner(s, i) {
       </div>`;
   }
 
+  if (s.type === "screenshot") {
+    const tagEl = s.tag ? `<div class="slide-tag" style="font-size:${s.tagSize || 24}px">${esc(s.tag)}</div>` : "";
+    const imageEl = s.image
+      ? `<div class="slide-image"><img src="${s.image}" alt=""></div>`
+      : `<div class="slide-image-placeholder">drop a screenshot in the sidebar →</div>`;
+    const captionEl = s.caption ? `<div class="slide-caption" style="font-size:${s.captionSize || 30}px">${esc(s.caption)}</div>` : "";
+    return `
+      <div class="${classList.join(" ")}" data-slide-id="${s.id}" style="${styleVars}">
+        <div class="slide-mark"></div>
+        ${iconHTML}
+        ${tagEl}
+        <div class="slide-headline" style="font-size:${s.headlineSize || 96}px">${esc(s.headline || "")}</div>
+        ${imageEl}
+        ${captionEl}
+        <div class="slide-footer"><span>${handle}</span><span>${pageMark}</span></div>
+      </div>`;
+  }
+
+  if (s.type === "prompt") {
+    const tagEl = s.tag ? `<div class="slide-tag" style="font-size:${s.tagSize || 24}px">${esc(s.tag)}</div>` : "";
+    const captionEl = s.caption ? `<div class="slide-caption" style="font-size:${s.captionSize || 30}px">${esc(s.caption)}</div>` : "";
+    return `
+      <div class="${classList.join(" ")}" data-slide-id="${s.id}" style="${styleVars}">
+        <div class="slide-mark"></div>
+        ${iconHTML}
+        ${tagEl}
+        <div class="slide-headline" style="font-size:${s.headlineSize || 92}px">${esc(s.headline || "")}</div>
+        <div class="slide-prompt" style="font-size:${s.promptSize || 30}px">${esc(s.prompt || "")}</div>
+        ${captionEl}
+        <div class="slide-footer"><span>${handle}</span><span>${pageMark}</span></div>
+      </div>`;
+  }
+
+  if (s.type === "comparison") {
+    const tagEl = s.tag ? `<div class="slide-tag" style="font-size:${s.tagSize || 24}px">${esc(s.tag)}</div>` : "";
+    const captionEl = s.caption ? `<div class="slide-caption" style="font-size:${s.captionSize || 30}px">${esc(s.caption)}</div>` : "";
+    const cellA = s.imageA
+      ? `<div class="slide-compare-item"><img src="${s.imageA}" alt=""></div>`
+      : `<div class="slide-compare-item"><div class="slide-compare-placeholder">upload image A</div></div>`;
+    const cellB = s.imageB
+      ? `<div class="slide-compare-item"><img src="${s.imageB}" alt=""></div>`
+      : `<div class="slide-compare-item"><div class="slide-compare-placeholder">upload image B</div></div>`;
+    const labelA = s.labelA ? `<div class="slide-compare-label">${esc(s.labelA)}</div>` : "";
+    const labelB = s.labelB ? `<div class="slide-compare-label">${esc(s.labelB)}</div>` : "";
+    return `
+      <div class="${classList.join(" ")}" data-slide-id="${s.id}" style="${styleVars}">
+        <div class="slide-mark"></div>
+        ${iconHTML}
+        ${tagEl}
+        <div class="slide-headline" style="font-size:${s.headlineSize || 96}px">${esc(s.headline || "")}</div>
+        <div class="slide-compare-grid">
+          <div class="slide-compare-cell">${cellA}${labelA}</div>
+          <div class="slide-compare-cell">${cellB}${labelB}</div>
+        </div>
+        ${captionEl}
+        <div class="slide-footer"><span>${handle}</span><span>${pageMark}</span></div>
+      </div>`;
+  }
+
+  if (s.type === "list") {
+    const tagEl = s.tag ? `<div class="slide-tag" style="font-size:${s.tagSize || 22}px">${esc(s.tag)}</div>` : "";
+    const captionEl = s.caption ? `<div class="slide-caption" style="font-size:${s.captionSize || 30}px">${esc(s.caption)}</div>` : "";
+    const itemsArr = (s.items || "").split("\n").map(x => x.trim()).filter(Boolean);
+    const itemSize = s.itemSize || 40;
+    const numSize = Math.round(itemSize * 1.1);
+    const itemsHtml = itemsArr.map((txt, i) =>
+      `<li><span class="num" style="font-size:${numSize}px">${i + 1}.</span><span class="text" style="font-size:${itemSize}px">${esc(txt)}</span></li>`
+    ).join("");
+    return `
+      <div class="${classList.join(" ")}" data-slide-id="${s.id}" style="${styleVars}">
+        <div class="slide-mark"></div>
+        ${iconHTML}
+        ${tagEl}
+        <div class="slide-headline" style="font-size:${s.headlineSize || 108}px">${esc(s.headline || "")}</div>
+        <ul class="slide-list">${itemsHtml}</ul>
+        ${captionEl}
+        <div class="slide-footer"><span>${handle}</span><span>${pageMark}</span></div>
+      </div>`;
+  }
+
   // text
   const softEl = `<div class="slide-soft" style="font-size:${s.softSize || 54}px">${esc(s.soft || "")}</div>`;
   const headlineEl = `<div class="slide-headline" style="font-size:${s.headlineSize || 108}px">${esc(s.headline || "")}</div>`;
@@ -1618,6 +1875,40 @@ function renderSlidesList() {
     });
   });
 
+  // Screenshot / prompt / comparison — image upload handlers
+  function wireImageField(selector, fieldName) {
+    root.querySelectorAll(selector).forEach((el) => {
+      el.addEventListener("change", (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const idx = parseInt(el.closest(".card").dataset.idx, 10);
+        const reader = new FileReader();
+        reader.onload = () => {
+          slidesOf()[idx][fieldName] = reader.result;
+          saveState(); renderSlidesList(); renderPreview();
+          toast("Image loaded");
+        };
+        reader.readAsDataURL(file);
+      });
+    });
+  }
+  function wireImageClear(selector, fieldName) {
+    root.querySelectorAll(selector).forEach((el) => {
+      el.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const idx = parseInt(el.closest(".card").dataset.idx, 10);
+        slidesOf()[idx][fieldName] = null;
+        saveState(); renderSlidesList(); renderPreview();
+      });
+    });
+  }
+  wireImageField("[data-slide-image]", "image");
+  wireImageClear("[data-slide-image-clear]", "image");
+  wireImageField("[data-slide-image-a]", "imageA");
+  wireImageClear("[data-slide-image-a-clear]", "imageA");
+  wireImageField("[data-slide-image-b]", "imageB");
+  wireImageClear("[data-slide-image-b-clear]", "imageB");
+
   // Icon upload
   root.querySelectorAll("[data-slide-icon]").forEach((el) => {
     el.addEventListener("change", (e) => {
@@ -1669,13 +1960,20 @@ function renderSlidesList() {
 }
 
 function slideCardHTML(s, i) {
-  const typeLabel = { cover: "Photo cover", text: "Text", cta: "CTA (3-line)", info: "Info (editorial)" }[s.type] || s.type;
+  const typeLabel = {
+    cover: "Photo cover", text: "Text", cta: "CTA (3-line)", info: "Info (editorial)",
+    screenshot: "Screenshot", prompt: "Prompt", comparison: "Comparison", list: "List",
+  }[s.type] || s.type;
   const preview = {
     cover: (s.headline || "").split("\n")[0] || "(no text)",
     text: ((s.order === "ab" ? s.soft : s.headline) || "").split("\n")[0] || "(empty)",
     cta: s.headline || "(empty)",
     info: s.headline || "(empty)",
-  }[s.type];
+    screenshot: (s.headline || s.tag || "Screenshot").split("\n")[0],
+    prompt: (s.headline || s.tag || "Prompt").split("\n")[0],
+    comparison: (s.headline || s.tag || "Comparison").split("\n")[0],
+    list: (s.headline || "List").split("\n")[0],
+  }[s.type] || "(empty)";
 
   const alignChips = `
     <div class="field">
@@ -1864,6 +2162,161 @@ function slideCardHTML(s, i) {
       ${photoBlock}
       ${iconBlock}
     `;
+  } else if (s.type === "screenshot") {
+    body = `
+      <div class="field">
+        <label>Tag (small caps, optional)</label>
+        <input type="text" data-slide-field="tag" value="${esc(s.tag || "")}" placeholder="STEP 1">
+      </div>
+      <div class="field">
+        <label>Headline (Inter Black)</label>
+        <textarea data-slide-field="headline">${esc(s.headline || "")}</textarea>
+      </div>
+      <div class="field">
+        <label>Screenshot / image</label>
+        <input type="file" data-slide-image accept="image/*">
+        ${s.image ? `<div style="margin-top:8px"><button class="btn small danger" data-slide-image-clear>Remove image</button></div>` : ""}
+      </div>
+      <div class="field">
+        <label>Caption (italic, optional)</label>
+        <textarea data-slide-field="caption">${esc(s.caption || "")}</textarea>
+      </div>
+      <div class="field">
+        <label>Tag size <span class="slider-val">${s.tagSize || 24}px</span></label>
+        <input type="range" data-slide-field="tagSize" min="14" max="40" step="1" value="${s.tagSize || 24}">
+      </div>
+      <div class="field">
+        <label>Headline size <span class="slider-val">${s.headlineSize || 96}px</span></label>
+        <input type="range" data-slide-field="headlineSize" min="40" max="180" step="2" value="${s.headlineSize || 96}">
+      </div>
+      <div class="field">
+        <label>Caption size <span class="slider-val">${s.captionSize || 30}px</span></label>
+        <input type="range" data-slide-field="captionSize" min="18" max="48" step="1" value="${s.captionSize || 30}">
+      </div>
+      ${themeDropdown}
+      ${alignChips}
+      ${iconBlock}
+    `;
+  } else if (s.type === "prompt") {
+    body = `
+      <div class="field">
+        <label>Tag (small caps, optional)</label>
+        <input type="text" data-slide-field="tag" value="${esc(s.tag || "")}" placeholder="STEP 2">
+      </div>
+      <div class="field">
+        <label>Headline (Inter Black)</label>
+        <textarea data-slide-field="headline">${esc(s.headline || "")}</textarea>
+      </div>
+      <div class="field">
+        <label>Prompt text (monospace)</label>
+        <textarea data-slide-field="prompt" style="min-height:140px;font-family:'SFMono-Regular',Menlo,monospace;font-size:12px">${esc(s.prompt || "")}</textarea>
+        <div class="hint">Blank lines create paragraph breaks. Indent preserved.</div>
+      </div>
+      <div class="field">
+        <label>Caption (italic, optional)</label>
+        <textarea data-slide-field="caption">${esc(s.caption || "")}</textarea>
+      </div>
+      <div class="field">
+        <label>Tag size <span class="slider-val">${s.tagSize || 24}px</span></label>
+        <input type="range" data-slide-field="tagSize" min="14" max="40" step="1" value="${s.tagSize || 24}">
+      </div>
+      <div class="field">
+        <label>Headline size <span class="slider-val">${s.headlineSize || 92}px</span></label>
+        <input type="range" data-slide-field="headlineSize" min="40" max="160" step="2" value="${s.headlineSize || 92}">
+      </div>
+      <div class="field">
+        <label>Prompt font size <span class="slider-val">${s.promptSize || 30}px</span></label>
+        <input type="range" data-slide-field="promptSize" min="18" max="44" step="1" value="${s.promptSize || 30}">
+      </div>
+      <div class="field">
+        <label>Caption size <span class="slider-val">${s.captionSize || 30}px</span></label>
+        <input type="range" data-slide-field="captionSize" min="18" max="48" step="1" value="${s.captionSize || 30}">
+      </div>
+      ${themeDropdown}
+      ${alignChips}
+      ${iconBlock}
+    `;
+  } else if (s.type === "comparison") {
+    body = `
+      <div class="field">
+        <label>Tag (small caps, optional)</label>
+        <input type="text" data-slide-field="tag" value="${esc(s.tag || "")}" placeholder="BEFORE / AFTER">
+      </div>
+      <div class="field">
+        <label>Headline (Inter Black)</label>
+        <textarea data-slide-field="headline">${esc(s.headline || "")}</textarea>
+      </div>
+      <div class="field">
+        <label>Image A (left)</label>
+        <input type="file" data-slide-image-a accept="image/*">
+        ${s.imageA ? `<div style="margin-top:8px"><button class="btn small danger" data-slide-image-a-clear>Remove image A</button></div>` : ""}
+        <input type="text" data-slide-field="labelA" value="${esc(s.labelA || "")}" placeholder="BEFORE" style="margin-top:8px">
+      </div>
+      <div class="field">
+        <label>Image B (right)</label>
+        <input type="file" data-slide-image-b accept="image/*">
+        ${s.imageB ? `<div style="margin-top:8px"><button class="btn small danger" data-slide-image-b-clear>Remove image B</button></div>` : ""}
+        <input type="text" data-slide-field="labelB" value="${esc(s.labelB || "")}" placeholder="AFTER" style="margin-top:8px">
+      </div>
+      <div class="field">
+        <label>Caption (italic, optional)</label>
+        <textarea data-slide-field="caption">${esc(s.caption || "")}</textarea>
+      </div>
+      <div class="field">
+        <label>Tag size <span class="slider-val">${s.tagSize || 24}px</span></label>
+        <input type="range" data-slide-field="tagSize" min="14" max="40" step="1" value="${s.tagSize || 24}">
+      </div>
+      <div class="field">
+        <label>Headline size <span class="slider-val">${s.headlineSize || 96}px</span></label>
+        <input type="range" data-slide-field="headlineSize" min="40" max="180" step="2" value="${s.headlineSize || 96}">
+      </div>
+      <div class="field">
+        <label>Caption size <span class="slider-val">${s.captionSize || 30}px</span></label>
+        <input type="range" data-slide-field="captionSize" min="18" max="48" step="1" value="${s.captionSize || 30}">
+      </div>
+      ${themeDropdown}
+      ${alignChips}
+      ${iconBlock}
+    `;
+  } else if (s.type === "list") {
+    body = `
+      <div class="field">
+        <label>Tag (small caps, optional)</label>
+        <input type="text" data-slide-field="tag" value="${esc(s.tag || "")}" placeholder="LESSONS">
+      </div>
+      <div class="field">
+        <label>Headline (Inter Black)</label>
+        <textarea data-slide-field="headline">${esc(s.headline || "")}</textarea>
+      </div>
+      <div class="field">
+        <label>Items — one per line (numbered automatically)</label>
+        <textarea data-slide-field="items" style="min-height:120px">${esc(s.items || "")}</textarea>
+        <div class="hint">Keep each line short — ideally under 60 chars.</div>
+      </div>
+      <div class="field">
+        <label>Caption (italic, optional)</label>
+        <textarea data-slide-field="caption">${esc(s.caption || "")}</textarea>
+      </div>
+      <div class="field">
+        <label>Tag size <span class="slider-val">${s.tagSize || 22}px</span></label>
+        <input type="range" data-slide-field="tagSize" min="14" max="40" step="1" value="${s.tagSize || 22}">
+      </div>
+      <div class="field">
+        <label>Headline size <span class="slider-val">${s.headlineSize || 108}px</span></label>
+        <input type="range" data-slide-field="headlineSize" min="40" max="180" step="2" value="${s.headlineSize || 108}">
+      </div>
+      <div class="field">
+        <label>Item size <span class="slider-val">${s.itemSize || 40}px</span></label>
+        <input type="range" data-slide-field="itemSize" min="20" max="80" step="1" value="${s.itemSize || 40}">
+      </div>
+      <div class="field">
+        <label>Caption size <span class="slider-val">${s.captionSize || 30}px</span></label>
+        <input type="range" data-slide-field="captionSize" min="18" max="48" step="1" value="${s.captionSize || 30}">
+      </div>
+      ${themeDropdown}
+      ${alignChips}
+      ${iconBlock}
+    `;
   } else {
     body = `
       <div class="field">
@@ -2007,6 +2460,39 @@ function addSlide(type) {
     subtitle: "Short italic intro.",
     body: "First paragraph goes here — explain what it is.\n\nSecond paragraph — explain how you use it.\n\nThird paragraph — a tip, a warning, or a recommendation.",
     headlineSize: 92, subtitleSize: 44, bodySize: 38,
+  };
+  else if (type === "screenshot") slide = {
+    ...base,
+    tag: "STEP 1",
+    headline: "Your headline\ngoes here.",
+    image: null,
+    caption: "Short explanation in italic.",
+    tagSize: 24, headlineSize: 96, captionSize: 30,
+  };
+  else if (type === "prompt") slide = {
+    ...base,
+    tag: "STEP 2",
+    headline: "The prompt I pasted.",
+    prompt: "Build me a thing that does X.\n\nConstraints:\n- Use Y\n- Avoid Z\n\nGo.",
+    caption: "I walked away. Came back to a working thing.",
+    tagSize: 24, headlineSize: 92, promptSize: 30, captionSize: 30,
+  };
+  else if (type === "comparison") slide = {
+    ...base,
+    tag: "SAME MESSAGE",
+    headline: "Different system.",
+    imageA: null, imageB: null,
+    labelA: "BEFORE", labelB: "AFTER",
+    caption: "Same minutes of typing. Different result.",
+    tagSize: 24, headlineSize: 96, captionSize: 30,
+  };
+  else if (type === "list") slide = {
+    ...base,
+    tag: "",
+    headline: "5 things\nI learned.",
+    items: "Short lesson one.\nShort lesson two.\nShort lesson three.\nShort lesson four.\nShort lesson five.",
+    caption: "",
+    tagSize: 22, headlineSize: 108, itemSize: 40, captionSize: 30,
   };
   else slide = { ...base, order: "ba", soft: "Italic line.", headline: "Your headline.", softSize: 54, headlineSize: 108 };
   currentCarousel().slides.push(slide);

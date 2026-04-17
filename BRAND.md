@@ -99,7 +99,7 @@ Defaults (`Cream + Dots` theme):
 
 ## 6. Slide templates
 
-Four types in the carousel-maker. Use the right one.
+Eight types in the carousel-maker. Use the right one.
 
 ### Cover (photo cover)
 - **When:** slide 1 of most carousels
@@ -121,6 +121,29 @@ Four types in the carousel-maker. Use the right one.
 - **Structure:** Inter Black title (often ALL CAPS) → optional italic subtitle → Apple Garamond regular body in 3–5 short paragraphs
 - **Alignment:** always left
 - **Tip:** pair with `Cream + Grid` theme for a "field notes" feel
+
+### Screenshot
+- **When:** showing a file, a UI, a tool, anything captured as an image
+- **Structure:** **tag** (STEP 1, WHAT I BUILT, etc. — small caps, warm accent) → Inter Black headline → uploaded image (rounded, soft shadow) → italic caption
+- **All fields editable from the sidebar** — the image is uploaded once, the rest is text
+- **Tip:** pair with `Cream + Dots` theme; leave caption under ~10 words
+
+### Prompt
+- **When:** quoting a prompt, showing config, showing a few lines of "input"
+- **Structure:** tag → Inter Black headline → monospace prompt box (SF Mono / Menlo, pre-wrap) → italic caption
+- **Prompt is a plain text field** — type any prompt, any length; line breaks and indentation preserved
+- **Tip:** aim for 6–10 lines of prompt copy; longer gets cramped at 1080×1350
+
+### Comparison
+- **When:** before/after, two tools, two approaches side-by-side
+- **Structure:** tag → Inter Black headline → 2-column image grid (each with an optional label underneath) → italic caption
+- **Two separate file uploads** (Image A / Image B); labels default to BEFORE / AFTER but are editable
+
+### List
+- **When:** "5 things I learned", "7 rules I follow", short numbered lessons
+- **Structure:** tag (optional) → Inter Black headline → numbered items (Inter Black number + Apple Garamond italic text) → italic caption
+- **Items field:** one item per line in the textarea — numbers are generated automatically
+- **Tip:** 3–6 items max; each under 60 characters so lines don't wrap
 
 ## 7. Photo treatment
 
