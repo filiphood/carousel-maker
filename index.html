@@ -1511,7 +1511,18 @@ function renderThemesList() {
   const themes = Object.values(state.themes);
   document.getElementById("themes-count").textContent = themes.length + " theme" + (themes.length === 1 ? "" : "s");
 
+  // Remember which theme cards were open so we can restore them after re-render
+  const openIds = new Set(
+    Array.from(root.querySelectorAll(".card.open")).map(c => c.dataset.themeId)
+  );
+
   root.innerHTML = themes.map(t => themeCardHTML(t)).join("");
+
+  // Restore open state
+  openIds.forEach(id => {
+    const c = root.querySelector(`.card[data-theme-id="${id}"]`);
+    if (c) c.classList.add("open");
+  });
 
   root.querySelectorAll(".card-head").forEach((h) => {
     h.addEventListener("click", (e) => {
@@ -1781,7 +1792,18 @@ function renderSlidesList() {
   const slides = slidesOf();
   document.getElementById("slides-count").textContent = slides.length + " slide" + (slides.length === 1 ? "" : "s");
 
+  // Remember which cards were open so we can restore them after re-render
+  const openIndices = new Set(
+    Array.from(root.querySelectorAll(".card.open")).map(c => parseInt(c.dataset.idx, 10))
+  );
+
   root.innerHTML = slides.map((s, i) => slideCardHTML(s, i)).join("");
+
+  // Restore open state
+  openIndices.forEach(idx => {
+    const c = root.querySelector(`.card[data-idx="${idx}"]`);
+    if (c) c.classList.add("open");
+  });
 
   root.querySelectorAll(".card-head").forEach((h) => {
     h.addEventListener("click", (e) => {
