@@ -284,6 +284,16 @@
   }
   .slide-inner.cover .slide-headline, .slide-inner.cover .slide-soft { color: #f6f3ec; }
 
+  /* Cover subheadline spacing — works for either order */
+  .slide-inner.cover .cover-copy .slide-soft.cover-sub {
+    line-height: 1.2;
+    margin-bottom: 0.5em; /* when sub is above headline */
+  }
+  .slide-inner.cover .cover-copy .slide-headline + .slide-soft.cover-sub {
+    margin-bottom: 0;
+    margin-top: 0.5em; /* when sub comes after headline */
+  }
+
   /* ————— Photo + texture layers (any slide type) ————— */
   .slide-photo, .slide-texture, .slide-dim, .slide-gradient-bottom {
     position: absolute; inset: 0; pointer-events: none;
@@ -1339,14 +1349,18 @@ function renderSlideInner(s, i) {
   const iconHTML = renderIconHTML(s.icon);
 
   if (s.type === "cover") {
+    const subOrder = s.subheadlineOrder || "ab"; // ab = sub above headline, ba = sub below
+    const subEl = s.subheadline
+      ? `<div class="slide-soft cover-sub" style="font-size:${s.subheadlineSize || 48}px">${esc(s.subheadline)}</div>`
+      : "";
+    const headEl = `<div class="slide-headline" style="font-size:${s.headlineSize || 132}px">${esc(s.headline || "")}</div>`;
+    const coverInner = subOrder === "ba" ? `${headEl}${subEl}` : `${subEl}${headEl}`;
     return `
       <div class="${classList.join(" ")}" data-slide-id="${s.id}" style="${styleVars}">
         ${photoLayers}
         <div class="slide-mark"></div>
         ${iconHTML}
-        <div class="cover-copy">
-          <div class="slide-headline" style="font-size:${s.headlineSize || 132}px">${esc(s.headline || "")}</div>
-        </div>
+        <div class="cover-copy">${coverInner}</div>
         <div class="slide-footer"><span>${handle}</span><span>${pageMark}</span></div>
       </div>`;
   }
@@ -2136,6 +2150,7 @@ function slideCardHTML(s, i) {
 
   let body = "";
   if (s.type === "cover") {
+    const subOrder = s.subheadlineOrder || "ab";
     body = `
       <div class="field">
         <label>Headline (Inter Black)</label>
@@ -2144,6 +2159,22 @@ function slideCardHTML(s, i) {
       <div class="field">
         <label>Headline size <span class="slider-val">${s.headlineSize || 132}px</span></label>
         <input type="range" data-slide-field="headlineSize" min="40" max="260" step="2" value="${s.headlineSize || 132}">
+      </div>
+      <div class="field">
+        <label>Subheadline (Apple Garamond italic, optional)</label>
+        <textarea data-slide-field="subheadline">${esc(s.subheadline || "")}</textarea>
+        <div class="hint">e.g. "Here's why" or "Let me explain"</div>
+      </div>
+      <div class="field">
+        <label>Subheadline placement</label>
+        <div class="chip-group">
+          <span class="chip ${subOrder === "ab" ? "active" : ""}" data-slide-field="subheadlineOrder" data-slide-chip="ab">Above headline</span>
+          <span class="chip ${subOrder === "ba" ? "active" : ""}" data-slide-field="subheadlineOrder" data-slide-chip="ba">Below headline</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Subheadline size <span class="slider-val">${s.subheadlineSize || 48}px</span></label>
+        <input type="range" data-slide-field="subheadlineSize" min="24" max="90" step="1" value="${s.subheadlineSize || 48}">
       </div>
       ${themeDropdown}
       ${alignChips}
