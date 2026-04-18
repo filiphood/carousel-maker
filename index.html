@@ -225,8 +225,29 @@
     pointer-events: none;
     z-index: 0;
   }
-  /* Slide content (headline, soft, body, footer, mark) sits above the accent layer */
-  .slide-inner.has-accent > * { position: relative; z-index: 1; }
+  /* Slide content sits above the accent layer.
+     Already-absolute elements keep their anchoring, just bumped in z-index.
+     Flow elements get position:relative so z-index applies. */
+  .slide-inner.has-accent > .slide-mark,
+  .slide-inner.has-accent > .slide-footer,
+  .slide-inner.has-accent > .slide-icon,
+  .slide-inner.has-accent > .cover-copy {
+    z-index: 1;
+  }
+  .slide-inner.has-accent > .slide-headline,
+  .slide-inner.has-accent > .slide-soft,
+  .slide-inner.has-accent > .slide-subtitle,
+  .slide-inner.has-accent > .slide-body,
+  .slide-inner.has-accent > .slide-tag,
+  .slide-inner.has-accent > .slide-image,
+  .slide-inner.has-accent > .slide-image-placeholder,
+  .slide-inner.has-accent > .slide-prompt,
+  .slide-inner.has-accent > .slide-compare-grid,
+  .slide-inner.has-accent > .slide-list,
+  .slide-inner.has-accent > .slide-caption {
+    position: relative;
+    z-index: 1;
+  }
 
   .slide-inner.align-left { text-align: left; align-items: flex-start; }
   .slide-inner.align-center { text-align: center; align-items: center; }
