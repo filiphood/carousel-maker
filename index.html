@@ -309,15 +309,19 @@
     z-index: 3;
   }
 
-  /* Content (mark, text, footer) sits above all photo layers */
+  /* Content sits above all photo layers.
+     Already-absolute elements (mark, footer, cover-copy, icon) keep their positioning
+     and just get a z-index bump. Flow elements get position:relative so z-index applies. */
   .slide-inner.has-photo .slide-mark,
-  .slide-inner.has-photo .slide-headline,
-  .slide-inner.has-photo .slide-soft,
-  .slide-inner.has-photo .slide-subtitle,
-  .slide-inner.has-photo .slide-body,
   .slide-inner.has-photo .slide-footer,
   .slide-inner.has-photo .cover-copy,
   .slide-inner.has-photo .slide-icon {
+    z-index: 5;
+  }
+  .slide-inner.has-photo .slide-headline,
+  .slide-inner.has-photo .slide-soft,
+  .slide-inner.has-photo .slide-subtitle,
+  .slide-inner.has-photo .slide-body {
     position: relative;
     z-index: 5;
   }
