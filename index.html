@@ -1131,6 +1131,128 @@ function getTheme(themeId) {
 function firstTheme() { return normalizeTheme(Object.values(state.themes)[0]); }
 
 // Returns { baseImage, baseSize, basePosition, accentImage?, accentSize?, accentPosition?, accentMask? }
+// Render a theme's pattern (dots / accent / grid) to a canvas and return a
+// PNG data URL. Used at export time because html2canvas 1.4.1 cannot render
+// radial-gradients used as tiled patterns.
+function renderPatternPNG(theme, width, height) {
+  const type = theme.patternType || "none";
+  if (type === "none") return null;
+
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d");
+
+  const color = hexToRgba(theme.dotColor, theme.dotOpacity / 100);
+  const sp = theme.dotSpacing || 28;
+  const ds = theme.dotSize || 1.6;
+  const mult = Math.max(2, Math.min(6, theme.accentMultiplier || 3));
+  const scale = Math.max(1, theme.accentScale || 2.6);
+
+  // ——— Grid: crosshatched lines ———
+  if (type === "grid") {
+    const lw = theme.gridLineWidth || 1;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = lw;
+    for (let x = 0.5; x < width; x += sp) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke();
+    }
+    for (let y = 0.5; y < height; y += sp) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke();
+    }
+    return canvas.toDataURL("image/png");
+  }
+
+  // ——— Dot-based patterns ———
+  const isAccentSize = type === "dots-accent-size";
+  const isAccentBright = type === "dots-accent-bright";
+  const hasAccent = isAccentSize || isAccentBright;
+
+  // Base dot layer (small dots everywhere)
+  let baseColor = color;
+  if (isAccentBright) {
+    const faintAlpha = Math.max(0.02, (theme.dotOpacity / 100) * 0.4);
+    baseColor = hexToRgba(theme.dotColor, faintAlpha);
+  }
+  ctx.fillStyle = baseColor;
+  for (let y = sp / 2; y < height; y += sp) {
+    for (let x = sp / 2; x < width; x += sp) {
+      ctx.beginPath();
+      ctx.arc(x, y, ds, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // Accent layer (larger / brighter dots, optionally masked)
+  if (hasAccent) {
+    const dist = theme.accentDistribution || "even";
+    const accentDotSize = isAccentSize ? ds * scale : ds * 1.1;
+    const accentColor = isAccentBright
+      ? hexToRgba(theme.dotColor, Math.min(1, (theme.dotOpacity / 100) * scale))
+      : color;
+
+    if (dist === "even") {
+      // Accent dot every Nth cell — uniform
+      ctx.fillStyle = accentColor;
+      for (let y = sp / 2; y < height; y += sp * mult) {
+        for (let x = sp / 2; x < width; x += sp * mult) {
+          ctx.beginPath();
+          ctx.arc(x, y, accentDotSize, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+    } else {
+      // Radial or band — render accent dots on a sub-canvas, then apply a mask
+      const sub = document.createElement("canvas");
+      sub.width = width; sub.height = height;
+      const sctx = sub.getContext("2d");
+      sctx.fillStyle = accentColor;
+      for (let y = sp / 2; y < height; y += sp) {
+        for (let x = sp / 2; x < width; x += sp) {
+          sctx.beginPath();
+          sctx.arc(x, y, accentDotSize, 0, Math.PI * 2);
+          sctx.fill();
+        }
+      }
+      sctx.globalCompositeOperation = "destination-in";
+      if (dist === "radial") {
+        const px = (theme.accentPositionX != null ? theme.accentPositionX : 50) / 100 * width;
+        const py = (theme.accentPositionY != null ? theme.accentPositionY : 50) / 100 * height;
+        const falloff = Math.max(10, Math.min(200, theme.accentFalloff || 60)) / 100;
+        const maxR = Math.sqrt(width * width + height * height) / 2;
+        const innerR = Math.max(4, falloff * 0.2 * maxR);
+        const outerR = falloff * maxR;
+        const grad = sctx.createRadialGradient(px, py, innerR, px, py, outerR);
+        grad.addColorStop(0, "rgba(0,0,0,1)");
+        grad.addColorStop(1, "rgba(0,0,0,0)");
+        sctx.fillStyle = grad;
+        sctx.fillRect(0, 0, width, height);
+      } else if (dist === "band") {
+        const angle = (theme.accentAngle != null ? theme.accentAngle : 0) * Math.PI / 180;
+        const halfPct = Math.min(48, (theme.accentFalloff != null ? theme.accentFalloff : 40) / 2) / 100;
+        const softPct = Math.min(halfPct * 0.6, 0.18);
+        const cx = width / 2, cy = height / 2;
+        const diagonal = Math.sqrt(width * width + height * height);
+        // Band direction is along `angle`; mask gradient runs perpendicular
+        const dx = Math.sin(angle) * diagonal / 2;
+        const dy = -Math.cos(angle) * diagonal / 2;
+        const x1 = cx - dx, y1 = cy - dy;
+        const x2 = cx + dx, y2 = cy + dy;
+        const grad = sctx.createLinearGradient(x1, y1, x2, y2);
+        grad.addColorStop(Math.max(0, 0.5 - halfPct), "rgba(0,0,0,0)");
+        grad.addColorStop(Math.max(0, 0.5 - halfPct + softPct), "rgba(0,0,0,1)");
+        grad.addColorStop(Math.min(1, 0.5 + halfPct - softPct), "rgba(0,0,0,1)");
+        grad.addColorStop(Math.min(1, 0.5 + halfPct), "rgba(0,0,0,0)");
+        sctx.fillStyle = grad;
+        sctx.fillRect(0, 0, width, height);
+      }
+      ctx.drawImage(sub, 0, 0);
+    }
+  }
+
+  return canvas.toDataURL("image/png");
+}
+
 function patternCSS(theme) {
   const type = theme.patternType || "none";
   if (type === "none") return null;
@@ -2583,6 +2705,110 @@ document.querySelectorAll("[data-add]").forEach((el) => {
 /* ============================================================
    EXPORT
    ============================================================ */
+// Load an image data URL and return a promise for the loaded Image
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = src;
+  });
+}
+
+// Map photoFilter name → CSS filter string (matches the class-based CSS)
+function photoFilterCSS(filter) {
+  switch (filter) {
+    case "grayscale": return "grayscale(1) contrast(1.02)";
+    case "sepia": return "sepia(0.7) saturate(1.1)";
+    case "dim": return "brightness(0.6)";
+    case "faded": return "grayscale(0.6) brightness(1.05) contrast(0.95)";
+    default: return "";
+  }
+}
+
+// Render the photo with its filter applied to a canvas → PNG data URL.
+// html2canvas 1.4.1 ignores filter: grayscale/sepia/etc., so we have to bake.
+async function bakePhotoWithFilter(photoUrl, slide, extraFilter = "") {
+  if (!photoUrl) return null;
+  try {
+    const img = await loadImage(photoUrl);
+    const c = document.createElement("canvas");
+    c.width = 1080; c.height = 1350;
+    const ctx = c.getContext("2d");
+    const baseFilter = photoFilterCSS(slide.photoFilter);
+    const combined = [baseFilter, extraFilter].filter(Boolean).join(" ");
+    if (combined) ctx.filter = combined;
+    // cover semantics
+    const iw = img.naturalWidth || 1080, ih = img.naturalHeight || 1350;
+    const targetAR = 1080 / 1350, srcAR = iw / ih;
+    let sx = 0, sy = 0, sw = iw, sh = ih;
+    if (srcAR > targetAR) { sw = ih * targetAR; sx = (iw - sw) / 2; }
+    else if (srcAR < targetAR) { sh = iw / targetAR; sy = (ih - sh) / 2; }
+    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, 1080, 1350);
+    return c.toDataURL("image/png");
+  } catch (err) {
+    console.warn("bakePhotoWithFilter failed:", err);
+    return photoUrl;
+  }
+}
+
+// Bake the blur layer: photo + filter + blur + mask → single PNG
+async function bakeBlurLayer(photoUrl, slide) {
+  if (!photoUrl || !slide.photoBlur || slide.photoBlur === "none") return null;
+  try {
+    const amount = slide.photoBlurAmount != null ? slide.photoBlurAmount : 20;
+    const baseFilter = photoFilterCSS(slide.photoFilter);
+    const fullFilter = (baseFilter + ` blur(${amount}px)`).trim();
+    const img = await loadImage(photoUrl);
+    const c = document.createElement("canvas");
+    c.width = 1080; c.height = 1350;
+    const ctx = c.getContext("2d");
+    ctx.filter = fullFilter;
+    const iw = img.naturalWidth || 1080, ih = img.naturalHeight || 1350;
+    const targetAR = 1080 / 1350, srcAR = iw / ih;
+    let sx = 0, sy = 0, sw = iw, sh = ih;
+    if (srcAR > targetAR) { sw = ih * targetAR; sx = (iw - sw) / 2; }
+    else if (srcAR < targetAR) { sh = iw / targetAR; sy = (ih - sh) / 2; }
+    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, 1080, 1350);
+    ctx.filter = "none";
+
+    // Apply mask
+    ctx.globalCompositeOperation = "destination-in";
+    if (slide.photoBlur === "radial") {
+      const px = (slide.photoBlurPositionX != null ? slide.photoBlurPositionX : 50) / 100 * 1080;
+      const py = (slide.photoBlurPositionY != null ? slide.photoBlurPositionY : 50) / 100 * 1350;
+      const falloff = Math.max(10, Math.min(200, slide.photoBlurFalloff || 40));
+      const maxR = Math.sqrt(1080 * 1080 + 1350 * 1350) / 2;
+      const inner = Math.max(4, falloff * 0.25 / 100 * maxR);
+      const outer = falloff / 100 * maxR;
+      const grad = ctx.createRadialGradient(px, py, inner, px, py, outer);
+      grad.addColorStop(0, "rgba(0,0,0,1)");
+      grad.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 1080, 1350);
+    } else if (slide.photoBlur === "band") {
+      const angle = (slide.photoBlurAngle != null ? slide.photoBlurAngle : 0) * Math.PI / 180;
+      const halfPct = Math.min(48, (slide.photoBlurFalloff != null ? slide.photoBlurFalloff : 40) / 2) / 100;
+      const softPct = Math.min(halfPct * 0.6, 0.18);
+      const cx = 540, cy = 675;
+      const diagonal = Math.sqrt(1080 * 1080 + 1350 * 1350);
+      const dx = Math.sin(angle) * diagonal / 2;
+      const dy = -Math.cos(angle) * diagonal / 2;
+      const grad = ctx.createLinearGradient(cx - dx, cy - dy, cx + dx, cy + dy);
+      grad.addColorStop(Math.max(0, 0.5 - halfPct), "rgba(0,0,0,0)");
+      grad.addColorStop(Math.max(0, 0.5 - halfPct + softPct), "rgba(0,0,0,1)");
+      grad.addColorStop(Math.min(1, 0.5 + halfPct - softPct), "rgba(0,0,0,1)");
+      grad.addColorStop(Math.min(1, 0.5 + halfPct), "rgba(0,0,0,0)");
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 1080, 1350);
+    }
+    return c.toDataURL("image/png");
+  } catch (err) {
+    console.warn("bakeBlurLayer failed:", err);
+    return null;
+  }
+}
+
 async function exportSlide(i) {
   const stage = document.getElementById("slide-box-" + i);
   const inner = stage?.querySelector(".slide-inner");
@@ -2591,6 +2817,59 @@ async function exportSlide(i) {
   await document.fonts.ready;
 
   const clone = inner.cloneNode(true);
+
+  // html2canvas 1.4.1 cannot render radial-gradients used as tiled patterns.
+  // Pre-render the theme's pattern (base dots + accent + mask, OR grid) to a PNG
+  // data URL on a <canvas> and use THAT as the clone's background-image.
+  const slide = slidesOf()[i];
+  const theme = getTheme(slide && slide.themeId);
+  const cs = getComputedStyle(inner);
+
+  // Always copy the background color so it survives class removal
+  clone.style.backgroundColor = cs.getPropertyValue('background-color').trim();
+
+  if (theme) {
+    const patternURL = renderPatternPNG(theme, 1080, 1350);
+    if (patternURL) {
+      clone.style.backgroundImage = `url("${patternURL}")`;
+      clone.style.backgroundSize = '1080px 1350px';
+      clone.style.backgroundPosition = '0 0';
+      clone.style.backgroundRepeat = 'no-repeat';
+    }
+  }
+
+  // Strip pattern/accent classes so the CSS rules using CSS vars don't fight
+  // the baked PNG. The pseudo-element ::before won't render anything (no --accent-image)
+  // and we've put the accent into the baked PNG already.
+  clone.classList.remove('has-pattern', 'has-accent');
+
+  // Bake photo filters (grayscale / sepia / dim / faded) — html2canvas ignores them.
+  if (slide && slide.photo) {
+    const photoEl = clone.querySelector('.slide-photo');
+    if (photoEl && slide.photoFilter && slide.photoFilter !== 'none') {
+      const baked = await bakePhotoWithFilter(slide.photo, slide);
+      if (baked) {
+        photoEl.style.backgroundImage = `url("${baked}")`;
+        // Remove the filter class so the CSS filter isn't applied on top
+        Array.from(photoEl.classList).forEach(cls => {
+          if (cls.startsWith('filter-')) photoEl.classList.remove(cls);
+        });
+      }
+    }
+
+    // Bake the blur layer (photo + filter + blur + mask) → single PNG
+    const blurEl = clone.querySelector('.slide-photo-blur');
+    if (blurEl && slide.photoBlur && slide.photoBlur !== 'none') {
+      const bakedBlur = await bakeBlurLayer(slide.photo, slide);
+      if (bakedBlur) {
+        blurEl.style.backgroundImage = `url("${bakedBlur}")`;
+        blurEl.style.filter = 'none';
+        blurEl.style.maskImage = 'none';
+        blurEl.style.webkitMaskImage = 'none';
+      }
+    }
+  }
+
   clone.style.transform = "none";
   clone.style.position = "fixed";
   clone.style.top = "-20000px";
